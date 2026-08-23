@@ -12,7 +12,12 @@ Future<void> initDependencies() async {
 
   await HomeWidget.setAppGroupId('group.com.udhay.vitapstudentapp');
 
-  await NotificationService.initialize();
+  // Notifications are non-critical: never let their setup block startup.
+  try {
+    await NotificationService.initialize();
+  } catch (e) {
+    debugPrint('Notification init skipped: $e');
+  }
 
   // Block Landscape View
   await SystemChrome.setPreferredOrientations([
