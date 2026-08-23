@@ -3,7 +3,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:vit_ap_student_app/core/models/credentials.dart';
 import 'package:vit_ap_student_app/core/models/semester_cache.dart';
 import 'package:vit_ap_student_app/core/models/user.dart';
-import 'package:vit_ap_student_app/core/providers/user_preferences_notifier.dart';
 import 'package:vit_ap_student_app/core/services/demo_service.dart';
 import 'package:vit_ap_student_app/core/services/notification_service.dart';
 import 'package:vit_ap_student_app/core/services/secure_store_service.dart';
@@ -31,16 +30,6 @@ class CurrentUserNotifier extends _$CurrentUserNotifier {
       await serviceLocator
           .get<SecureStorageService>()
           .saveCredentials(credentials);
-
-      final prefs = ref.read(userPreferencesProvider);
-      await NotificationService.scheduleTimetableNotifications(
-        user: user,
-        prefs: prefs,
-      );
-      await NotificationService.scheduleExamNotifications(
-        user: user,
-        prefs: prefs,
-      );
     } catch (e) {
       state = null;
       _clearUserDataObjectBox();
@@ -57,18 +46,6 @@ class CurrentUserNotifier extends _$CurrentUserNotifier {
 
       state = userWithId;
       _saveUserToObjectBox(userWithId);
-
-      // Reschedule notifications with updated user data
-      final prefs = ref.read(userPreferencesProvider);
-      await NotificationService.cancelAllNotifications();
-      await NotificationService.scheduleTimetableNotifications(
-        user: userWithId,
-        prefs: prefs,
-      );
-      await NotificationService.scheduleExamNotifications(
-        user: userWithId,
-        prefs: prefs,
-      );
     } catch (e) {
       debugPrint('Failed to update user data: $e');
       throw Exception('Failed to update user data: $e');

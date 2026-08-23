@@ -82,16 +82,4 @@ class _GradeHistoryRelToOneConverter
   Map<String, dynamic>? toJson(ToOne<GradeHistory> rel) => rel.target?.toJson();
 }
 
-class _MentorDetailsRelToOneConverter
-    implements JsonConverter<ToOne<MentorDetails>, Map<String, dynamic>?> {
-  const _MentorDetailsRelToOneConverter();
 
-  @override
-  ToOne<MentorDetails> fromJson(Map<String, dynamic>? json) =>
-      ToOne<MentorDetails>(
-          target: json != null ? MentorDetails.fromJson(json) : null);
-
-  @override
-  Map<String, dynamic>? toJson(ToOne<MentorDetails> rel) =>
-      rel.target?.toJson();
-}

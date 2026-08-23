@@ -59,6 +59,45 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
     Overlay.of(context).insert(_overlayEntry!);
   }
 
+  /// Fading hairline that separates consecutive classes without turning
+  /// the list into a stack of boxes.
+  Widget _classDivider(BuildContext context) {
+    final color = Theme.of(context).colorScheme.outlineVariant;
+    return Container(
+      height: 1,
+      margin: const EdgeInsets.symmetric(vertical: 7, horizontal: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            color.withValues(alpha: 0),
+            color.withValues(alpha: 0.7),
+            color.withValues(alpha: 0),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Slightly stronger gradient divider between Morning and Afternoon.
+  Widget _sectionDivider(BuildContext context) {
+    final color = Theme.of(context).colorScheme.outlineVariant;
+    return Container(
+      height: 2,
+      margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(1),
+        gradient: LinearGradient(
+          colors: [
+            color.withValues(alpha: 0),
+            color,
+            color,
+            color.withValues(alpha: 0),
+          ],
+        ),
+      ),
+    );
+  }
+
   List<Widget> _buildSection(
     BuildContext context,
     String title,
@@ -77,7 +116,7 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
         ),
       ),
       for (var i = 0; i < classes.length; i++) ...[
-        if (i > 0) const SizedBox(height: 6),
+        if (i > 0) _classDivider(context),
         _ClassRow(
           classInfo: classes[i],
           isSelected: _selectedClass == classes[i],
@@ -113,6 +152,8 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
       children: [
         ..._buildSection(context, 'Morning', morning),
+        if (morning.isNotEmpty && afternoon.isNotEmpty)
+          _sectionDivider(context),
         ..._buildSection(context, 'Afternoon', afternoon),
       ],
     );

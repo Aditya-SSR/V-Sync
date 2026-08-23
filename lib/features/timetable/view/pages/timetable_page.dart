@@ -138,73 +138,61 @@ class _TimetablePageState extends ConsumerState<TimetablePage>
                 physics: const BouncingScrollPhysics(),
                 headerSliverBuilder: (context, innerBoxIsScrolled) {
                   return [
-                    SliverAppBar(
-                      automaticallyImplyLeading: true,
-                      expandedHeight: 75,
-                      centerTitle: false,
-                      actions: [
-                        IconButton(
-                          icon: Icon(
-                            Iconsax.refresh_copy,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          onPressed: refresh,
-                          tooltip: 'Refresh',
-                        ),
-                      ],
-                      title: AnimatedBuilder(
-                        animation: controller,
-                        builder: (context, _) {
-                          final dayIndex =
-                              _getSelectedDayIndex(activeDays);
-                          return Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Timetable',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(fontWeight: FontWeight.w600),
-                              ),
-                              Text(
-                                _buildSubtitle(
-                                    timetable, dayIndex),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(fontSize: 13),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
                     SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 8.0,
-                        ),
-                        child: AnimatedBuilder(
-                          animation: controller,
-                          builder: (context, _) {
-                            return Row(
-                              children: [
-                                for (var i = 0; i < activeDays.length; i++)
-                                  Expanded(
-                                    child: _buildDayChip(
-                                      context,
-                                      letter:
-                                          _dayLetters[activeDays[i]],
-                                      isSelected: controller.index == i,
-                                      onTap: () => controller.animateTo(i),
-                                    ),
-                                  ),
-                              ],
-                            );
-                          },
+                      child: SafeArea(
+                        top: true,
+                        bottom: false,
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                24.0,
+                                12.0,
+                                24.0,
+                                0,
+                              ),
+                              child: AnimatedBuilder(
+                                animation: controller,
+                                builder: (context, _) {
+                                  return Row(
+                                    children: [
+                                      for (var i = 0;
+                                          i < activeDays.length;
+                                          i++)
+                                        Expanded(
+                                          child: _buildDayChip(
+                                            context,
+                                            letter:
+                                                _dayLetters[activeDays[i]],
+                                            isSelected:
+                                                controller.index == i,
+                                            onTap: () =>
+                                                controller.animateTo(i),
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            AnimatedBuilder(
+                              animation: controller,
+                              builder: (context, _) {
+                                final dayIndex =
+                                    _getSelectedDayIndex(activeDays);
+                                return Text(
+                                  _buildSubtitle(timetable, dayIndex),
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(fontSize: 13),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                          ],
                         ),
                       ),
                     ),

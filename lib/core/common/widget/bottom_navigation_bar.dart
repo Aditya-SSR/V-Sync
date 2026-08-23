@@ -78,28 +78,28 @@ class _FloatingCapsuleNavBar extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: 14, left: 24, right: 24),
           child: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(32),
+              borderRadius: BorderRadius.circular(34),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.15),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
+                  blurRadius: 24,
+                  offset: const Offset(0, 10),
                 ),
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(32),
+              borderRadius: BorderRadius.circular(34),
               // Blurs whatever scrolls behind the capsule.
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
+                      horizontal: 18, vertical: 12),
                   decoration: BoxDecoration(
                     color: isDark
                         ? Colors.black.withValues(alpha: 0.5)
                         : Colors.white.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(32),
+                    borderRadius: BorderRadius.circular(34),
                     border: Border.all(
                       color: colorScheme.outlineVariant.withValues(alpha: 0.9),
                       width: 1,
@@ -115,7 +115,7 @@ class _FloatingCapsuleNavBar extends ConsumerWidget {
                             .read(bottomNavIndexProvider.notifier)
                             .state = 0,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       _NavItem(
                         icon: Iconsax.calendar,
                         isActive: currentIndex == 1,
@@ -123,7 +123,7 @@ class _FloatingCapsuleNavBar extends ConsumerWidget {
                             .read(bottomNavIndexProvider.notifier)
                             .state = 1,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       _NavItem(
                         icon: Iconsax.document,
                         isActive: currentIndex == 2,
@@ -131,9 +131,9 @@ class _FloatingCapsuleNavBar extends ConsumerWidget {
                             .read(bottomNavIndexProvider.notifier)
                             .state = 2,
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       _NavItem(
-                        icon: Iconsax.user,
+                        icon: Iconsax.setting_2,
                         isActive: currentIndex == 3,
                         onTap: () => ref
                             .read(bottomNavIndexProvider.notifier)
@@ -172,15 +172,15 @@ class _NavItem extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOutCubic,
-        width: 42,
-        height: 42,
+        width: 50,
+        height: 50,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: isActive ? colorScheme.primary : Colors.transparent,
         ),
         child: Icon(
           icon,
-          size: 20,
+          size: 24,
           color: isActive
               ? colorScheme.onPrimary
               : colorScheme.onSurfaceVariant,

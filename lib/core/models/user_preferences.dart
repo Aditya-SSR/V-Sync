@@ -44,7 +44,7 @@ class UserPreferences {
     this.isAmoledEnabled = false,
     this.bypassWeekendOutingRestriction = false,
     this.appTheme = 'blue',
-    this.fontScale = 1.0,
+    this.fontScale = 1.2,
     this.lastSync,
     this.attendanceLastSync,
     this.marksLastSync,
