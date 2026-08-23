@@ -1,65 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:vit_ap_student_app/core/providers/current_user.dart';
-import 'package:vit_ap_student_app/features/home/view/widgets/announcement_container.dart';
-import 'package:vit_ap_student_app/features/home/view/widgets/grade_history_carousel.dart';
-import 'package:vit_ap_student_app/features/home/view/widgets/home_app_bar.dart';
-import 'package:vit_ap_student_app/features/home/view/widgets/home_greeting.dart';
-import 'package:vit_ap_student_app/features/home/view/widgets/upcoming_classes/upcoming_classes_carousel.dart';
+import 'package:vit_ap_student_app/features/home/view/widgets/milestones/milestones_section.dart';
 
-class HomePage extends ConsumerStatefulWidget {
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
-  ConsumerState<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends ConsumerState<HomePage> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final user = ref.watch(currentUserProvider);
-    return Scaffold(
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          const HomeAppBar(),
-          SliverToBoxAdapter(
-            child: HomeGreeting(
-              username: user?.profile.target?.studentName ?? 'NaN',
-            ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return const Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MilestonesSection(),
+              SizedBox(height: 24),
+            ],
           ),
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.only(top: 8.0),
-              child: AnnouncementContainer(),
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: GradeHistoryCarousel(),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16.0, bottom: 2.0, top: 4.0),
-              child: Text(
-                'Today',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-              ),
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: UpcomingClassesCarousel(),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

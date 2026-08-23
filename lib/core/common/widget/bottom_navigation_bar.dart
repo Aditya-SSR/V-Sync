@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -15,13 +17,6 @@ class BottomNavBar extends ConsumerStatefulWidget {
 }
 
 class BottomNavBarState extends ConsumerState<BottomNavBar> {
-  final List<String> _tabNames = ['Home', 'Timetable', 'Attendance', 'Account'];
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
   List<Widget> _buildPages() {
     return const [
       HomePage(),
@@ -43,76 +38,154 @@ class BottomNavBarState extends ConsumerState<BottomNavBar> {
         }
       },
       child: Scaffold(
+        extendBody: true,
         body: AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           transitionBuilder: (child, animation) => FadeTransition(
             opacity: animation,
             child: child,
           ),
-          child: _buildPages()[currentIndex],
+          child: KeyedSubtree(
+            key: ValueKey(currentIndex),
+            child: _buildPages()[currentIndex],
+          ),
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          unselectedFontSize: 14,
-          currentIndex: currentIndex,
-          onTap: (index) {
-            if (index != currentIndex) {
-              ref.read(bottomNavIndexProvider.notifier).state = index;
-            }
-          },
-          items: [
-            BottomNavigationBarItem(
-              icon: _buildNavIcon(Iconsax.home, 0),
-              activeIcon: _buildActiveIcon(Iconsax.home, 0),
-              label: 'Home',
+        // The Scaffold hands this slot the full screen width and loose,
+        // screen-sized height constraints. Align with heightFactor: 1
+        // shrink-wraps the slot to the capsule's real height instead of
+        // letting it expand, and pins it to the bottom.
+        bottomNavigationBar: const _FloatingCapsuleNavBar(),
+      ),
+    );
+  }
+}
+
+class _FloatingCapsuleNavBar extends ConsumerWidget {
+  const _FloatingCapsuleNavBar();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentIndex = ref.watch(bottomNavIndexProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
+    return SafeArea(
+      top: false,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        heightFactor: 1,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 14, left: 24, right: 24),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(32),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
-            BottomNavigationBarItem(
-              icon: _buildNavIcon(Iconsax.calendar, 1),
-              activeIcon: _buildActiveIcon(Iconsax.calendar, 1),
-              label: 'Timetable',
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(32),
+              // Blurs whatever scrolls behind the capsule.
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.black.withValues(alpha: 0.5)
+                        : Colors.white.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.9),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _NavItem(
+                        icon: Iconsax.home,
+                        isActive: currentIndex == 0,
+                        onTap: () => ref
+                            .read(bottomNavIndexProvider.notifier)
+                            .state = 0,
+                      ),
+                      const SizedBox(width: 8),
+                      _NavItem(
+                        icon: Iconsax.calendar,
+                        isActive: currentIndex == 1,
+                        onTap: () => ref
+                            .read(bottomNavIndexProvider.notifier)
+                            .state = 1,
+                      ),
+                      const SizedBox(width: 8),
+                      _NavItem(
+                        icon: Iconsax.document,
+                        isActive: currentIndex == 2,
+                        onTap: () => ref
+                            .read(bottomNavIndexProvider.notifier)
+                            .state = 2,
+                      ),
+                      const SizedBox(width: 8),
+                      _NavItem(
+                        icon: Iconsax.user,
+                        isActive: currentIndex == 3,
+                        onTap: () => ref
+                            .read(bottomNavIndexProvider.notifier)
+                            .state = 3,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            BottomNavigationBarItem(
-              icon: _buildNavIcon(Iconsax.document, 2),
-              activeIcon: _buildActiveIcon(Iconsax.document, 2),
-              label: 'Attendance',
-            ),
-            BottomNavigationBarItem(
-              icon: _buildNavIcon(Iconsax.user, 3),
-              activeIcon: _buildActiveIcon(Iconsax.user, 3),
-              label: 'Account',
-            ),
-          ],
-          selectedItemColor: Theme.of(context).colorScheme.primary,
-          unselectedItemColor: Theme.of(context).colorScheme.onSurface,
-          backgroundColor: Theme.of(context).colorScheme.surface,
+          ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildNavIcon(IconData icon, int index) {
-    return Container(
-      height: 40,
-      width: 60,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
-        color: Theme.of(context).colorScheme.surface,
-      ),
-      child: Icon(icon),
-    );
-  }
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final bool isActive;
+  final VoidCallback onTap;
 
-  Widget _buildActiveIcon(IconData icon, int index) {
-    return Container(
-      height: 40,
-      width: 60,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
-        color: Theme.of(context).colorScheme.secondaryContainer,
+  const _NavItem({
+    required this.icon,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isActive ? colorScheme.primary : Colors.transparent,
+        ),
+        child: Icon(
+          icon,
+          size: 20,
+          color: isActive
+              ? colorScheme.onPrimary
+              : colorScheme.onSurfaceVariant,
+        ),
       ),
-      child: Icon(icon),
     );
   }
 }

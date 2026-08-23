@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:intl/intl.dart';
-import 'package:vit_ap_student_app/core/common/widget/error_content_view.dart';
 import 'package:vit_ap_student_app/core/common/widget/loader.dart';
 import 'package:vit_ap_student_app/core/models/timetable.dart';
 import 'package:vit_ap_student_app/core/providers/current_user.dart';
-import 'package:vit_ap_student_app/core/utils/show_snackbar.dart';
+import 'package:vit_ap_student_app/core/utils/get_classes.dart';
 import 'package:vit_ap_student_app/features/timetable/view/widgets/schedule_list.dart';
 import 'package:vit_ap_student_app/features/timetable/viewmodel/timetable_viewmodel.dart';
 
@@ -19,53 +17,94 @@ class TimetablePage extends ConsumerStatefulWidget {
 
 class _TimetablePageState extends ConsumerState<TimetablePage>
     with TickerProviderStateMixin {
-  late TabController _tabController;
+  static const _dayNames = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+  ];
+  static const _dayLetters = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-  @override
-  void initState() {
-    super.initState();
-    final int currentDayIndex = DateTime.now().weekday % 7;
+  TabController? _tabController;
+
+  /// Indices (0 = Sunday ... 6 = Saturday) of days that actually have classes.
+  List<int> _getActiveDays(Timetable timetable) {
+    final active = <int>[];
+    for (var i = 0; i < 7; i++) {
+      if (getClassesForDay(timetable, _dayNames[i]).isNotEmpty) {
+        active.add(i);
+      }
+    }
+    return active;
+  }
+
+  void _syncTabController(List<int> activeDays) {
+    if (_tabController?.length == activeDays.length) return;
+    _tabController?.dispose();
+
+    // Open on today if it has classes, otherwise the next upcoming
+    // day that does.
+    final today = DateTime.now().weekday % 7;
+    var initialIndex = activeDays.indexOf(today);
+    if (initialIndex == -1) {
+      initialIndex = 0;
+      for (var i = 0; i < activeDays.length; i++) {
+        if (activeDays[i] > today) {
+          initialIndex = i;
+          break;
+        }
+      }
+    }
+
     _tabController = TabController(
-      length: 7,
+      length: activeDays.length,
       vsync: this,
-      initialIndex: currentDayIndex,
+      initialIndex: initialIndex,
     );
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  int _getTodayClassesCount(Timetable? timetable) {
-    final day = DateFormat('EEEE').format(DateTime.now());
-    return (timetable?.toJson()[day] as List<dynamic>?)?.length ?? 0;
+  int _getSelectedDayIndex(List<int> activeDays) {
+    if (_tabController == null || activeDays.isEmpty) return activeDays.first;
+    final clamped = _tabController!.index.clamp(0, activeDays.length - 1);
+    return activeDays[clamped];
   }
 
   Future<void> refresh() async {
     await ref.read(timetableViewModelProvider.notifier).refreshTimetable();
   }
 
-  Widget _buildTab(String label) {
-    return Container(
-      height: 40,
-      width: 35,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.secondaryContainer.withValues(alpha: 0.25),
-        borderRadius: BorderRadius.circular(9),
-      ),
-      child: Tab(child: Text(label, style: const TextStyle())),
-    );
+  String _buildSubtitle(Timetable timetable, int dayIndex) {
+    final classes = getClassesForDay(timetable, _dayNames[dayIndex]);
+    if (classes.isEmpty) return 'No classes';
+
+    final labs = classes.where(isLabClass).length;
+    final theory = classes.length - labs;
+
+    final parts = <String>[];
+    if (labs > 0) parts.add('$labs lab${labs == 1 ? '' : 's'}');
+    if (theory > 0) {
+      parts.add('$theory theor${theory == 1 ? 'y' : 'y'} class'
+          '${theory == 1 ? '' : 'es'}');
+    }
+
+    final isToday = dayIndex == DateTime.now().weekday % 7;
+    final suffix = isToday ? 'today' : 'on ${_dayNames[dayIndex]}';
+    return 'You have ${parts.join(', ')} $suffix';
+  }
+
+  @override
+  void dispose() {
+    _tabController?.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
-    final timetable = user?.timetable;
+    final timetable = user?.timetable.target;
 
     final isLoading = ref.watch(
       timetableViewModelProvider.select((val) => val?.isLoading == true),
@@ -75,14 +114,23 @@ class _TimetablePageState extends ConsumerState<TimetablePage>
       next?.when(
         data: (data) {},
         loading: () {},
-        error: (error, st) {
-          showSnackBar(context, error.toString(), SnackBarType.error);
-        },
+        error: (error, st) {},
       );
     });
+
+    if (user == null || timetable == null) {
+      return const Scaffold(
+        body: Center(child: Text('User not found!')),
+      );
+    }
+
+    final activeDays = _getActiveDays(timetable);
+    _syncTabController(activeDays);
+    final controller = _tabController!;
+
     return Scaffold(
-      body: user == null || timetable == null
-          ? const ErrorContentView(error: 'User not found!')
+      body: activeDays.isEmpty
+          ? _buildCompletelyEmpty(context)
           : RefreshIndicator(
               onRefresh: refresh,
               notificationPredicate: (notification) => notification.depth == 2,
@@ -100,76 +148,63 @@ class _TimetablePageState extends ConsumerState<TimetablePage>
                             Iconsax.refresh_copy,
                             color: Theme.of(context).colorScheme.primary,
                           ),
-                          onPressed: () {
-                            refresh();
-                          },
+                          onPressed: refresh,
                           tooltip: 'Refresh',
                         ),
                       ],
-                      title: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Timetable',
-                            style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(fontWeight: FontWeight.w500),
-                          ),
-                          Text(
-                            _getTodayClassesCount(timetable.target) == 0
-                                ? 'No classes today'
-                                : 'You have ${_getTodayClassesCount(timetable.target)} classes Today',
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ],
+                      title: AnimatedBuilder(
+                        animation: controller,
+                        builder: (context, _) {
+                          final dayIndex =
+                              _getSelectedDayIndex(activeDays);
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Timetable',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                              Text(
+                                _buildSubtitle(
+                                    timetable, dayIndex),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(fontSize: 13),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                     SliverToBoxAdapter(
-                      child: Container(
+                      child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16.0,
                           vertical: 8.0,
                         ),
-                        child: TabBar(
-                          controller: _tabController,
-                          isScrollable: false,
-                          dividerColor: Theme.of(context).colorScheme.surface,
-                          labelPadding: const EdgeInsets.all(0),
-                          splashBorderRadius: BorderRadius.circular(14),
-                          labelStyle: const TextStyle(fontSize: 18),
-                          unselectedLabelColor: Theme.of(
-                            context,
-                          ).colorScheme.onSecondaryContainer,
-                          labelColor: Theme.of(
-                            context,
-                          ).colorScheme.onSecondaryContainer,
-                          indicator: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.secondaryContainer,
-                            borderRadius: BorderRadius.circular(9),
-                          ),
-                          splashFactory: InkRipple.splashFactory,
-                          overlayColor: WidgetStateColor.resolveWith(
-                            (states) => Theme.of(
-                              context,
-                            ).colorScheme.secondaryContainer,
-                          ),
-                          tabs: [
-                            _buildTab('S'),
-                            _buildTab('M'),
-                            _buildTab('T'),
-                            _buildTab('W'),
-                            _buildTab('T'),
-                            _buildTab('F'),
-                            _buildTab('S'),
-                          ],
+                        child: AnimatedBuilder(
+                          animation: controller,
+                          builder: (context, _) {
+                            return Row(
+                              children: [
+                                for (var i = 0; i < activeDays.length; i++)
+                                  Expanded(
+                                    child: _buildDayChip(
+                                      context,
+                                      letter:
+                                          _dayLetters[activeDays[i]],
+                                      isSelected: controller.index == i,
+                                      onTap: () => controller.animateTo(i),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -178,20 +213,72 @@ class _TimetablePageState extends ConsumerState<TimetablePage>
                 body: isLoading
                     ? const Loader()
                     : TabBarView(
-                        controller: _tabController,
+                        controller: controller,
                         physics: const BouncingScrollPhysics(),
-                        children: const [
-                          ScheduleList(day: 'Sunday'),
-                          ScheduleList(day: 'Monday'),
-                          ScheduleList(day: 'Tuesday'),
-                          ScheduleList(day: 'Wednesday'),
-                          ScheduleList(day: 'Thursday'),
-                          ScheduleList(day: 'Friday'),
-                          ScheduleList(day: 'Saturday'),
+                        children: [
+                          for (final dayIndex in activeDays)
+                            ScheduleList(day: _dayNames[dayIndex]),
                         ],
                       ),
               ),
             ),
+    );
+  }
+
+  Widget _buildDayChip(
+    BuildContext context, {
+    required String letter,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Center(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          width: 36,
+          height: 36,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isSelected ? colorScheme.primary : Colors.transparent,
+          ),
+          child: Text(
+            letter,
+            style: TextStyle(
+              fontFamily: 'Outfit',
+              fontSize: 15,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: isSelected
+                  ? colorScheme.onPrimary
+                  : colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompletelyEmpty(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Iconsax.calendar_circle,
+            size: 48,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No classes this week',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ],
+      ),
     );
   }
 }

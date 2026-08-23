@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vit_ap_student_app/core/utils/theme_switch_button.dart';
 import 'package:vit_ap_student_app/features/auth/view/pages/login_page.dart';
-import 'package:vit_ap_student_app/features/onboarding/view/pages/profile_picture_page.dart';
 import 'package:vit_ap_student_app/features/onboarding/view/widgets/onboarding_slide.dart';
 
 class OnboardingPage extends ConsumerStatefulWidget {
@@ -28,11 +27,7 @@ class OnboardingPageState extends ConsumerState<OnboardingPage> {
       Navigator.push(
         context,
         MaterialPageRoute<void>(
-          builder: (builder) => const ProfilePicturePage(
-            instructionText:
-                'Choose a profile picture that best represents you. You can change it anytime from your profile settings.',
-            nextPage: LoginPage(),
-          ),
+          builder: (builder) => const LoginPage(),
         ),
       );
     }

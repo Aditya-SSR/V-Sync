@@ -6,7 +6,6 @@ import 'package:vit_ap_student_app/core/providers/current_user.dart';
 import 'package:vit_ap_student_app/core/providers/user_preferences_notifier.dart';
 import 'package:vit_ap_student_app/features/auth/view/pages/semester_selection_page.dart';
 import 'package:vit_ap_student_app/features/auth/viewmodel/semester_viewmodel.dart';
-import 'package:vit_ap_student_app/features/onboarding/view/pages/profile_picture_page.dart';
 
 class ProfileCard extends ConsumerStatefulWidget {
   final User? user;
@@ -54,29 +53,6 @@ class _ProfileCardState extends ConsumerState<ProfileCard> {
               radius: 50,
               backgroundImage: AssetImage(userPrefs.pfpPath),
             ),
-            if (widget.isProfile)
-              TextButton(
-                style: const ButtonStyle(),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (builder) => const ProfilePicturePage(
-                        instructionText:
-                            'Choose a profile picture that best represents you',
-                      ),
-                    ),
-                  );
-                },
-                child: const Text(
-                  'Change avatar',
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ),
             const SizedBox(height: 8),
             Text(
               widget.user?.profile.target?.studentName ?? 'N/A',
