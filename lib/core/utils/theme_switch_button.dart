@@ -16,7 +16,7 @@ class ThemeSwitchButton extends ConsumerWidget {
     return IconButton(
       icon: Icon(
         isLight ? Iconsax.moon : Iconsax.sun_1,
-        color: isLight ? Colors.indigo : Colors.yellow,
+        color: Theme.of(context).colorScheme.onSurface,
       ),
       onPressed: notifier.toggleTheme,
     );

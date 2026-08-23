@@ -5,9 +5,7 @@ import 'package:vit_ap_student_app/core/providers/current_user.dart';
 import 'package:vit_ap_student_app/core/providers/theme_mode_notifier.dart';
 import 'package:vit_ap_student_app/core/providers/user_preferences_notifier.dart';
 import 'package:vit_ap_student_app/core/services/notification_service.dart';
-import 'package:vit_ap_student_app/core/theme/app_theme_enum.dart';
 import 'package:vit_ap_student_app/core/utils/show_toast.dart';
-import 'package:vit_ap_student_app/features/account/view/widgets/circular_theme_indicator.dart';
 import 'package:vit_ap_student_app/features/account/view/widgets/developer_mode_tiles.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -381,53 +379,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ref.read(themeModeProvider.notifier).toggleAmoled();
                     },
                   ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // App Theme Section
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14.0,
-                  vertical: 8,
-                ),
-                child: Text(
-                  'App Theme',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-
-              // Horizontal Theme Selector
-              SizedBox(
-                height: 110,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                  itemCount: AppTheme.values.length,
-                  itemBuilder: (context, index) {
-                    final theme = AppTheme.values[index];
-                    final isSelected =
-                        (userPreferences.appTheme ?? 'blue') == theme.name;
-
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
-                      child: CircularThemeIndicator(
-                        theme: theme,
-                        isDarkMode: userPreferences.isDarkModeEnabled,
-                        isSelected: isSelected,
-                        onTap: () async {
-                          await ref
-                              .read(themeModeProvider.notifier)
-                              .setAppTheme(theme);
-                        },
-                      ),
-                    );
-                  },
                 ),
               ),
 

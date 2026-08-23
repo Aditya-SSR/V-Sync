@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:vit_ap_student_app/core/providers/user_preferences_notifier.dart';
 import 'package:vit_ap_student_app/core/theme/app_theme.dart';
-import 'package:vit_ap_student_app/core/theme/app_theme_enum.dart';
 
 part 'theme_mode_notifier.g.dart';
 
@@ -13,20 +12,7 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
     // Get user preferences to determine initial theme
     final userPreferences = ref.read(userPreferencesProvider);
 
-    // Parse theme from string, default to blue if invalid or null
-    AppTheme selectedTheme;
-    try {
-      selectedTheme = AppTheme.values.firstWhere(
-        (t) => t.name == (userPreferences.appTheme ?? 'blue'),
-        orElse: () => AppTheme.blue,
-      );
-    } catch (e) {
-      selectedTheme = AppTheme.blue;
-    }
-
-    // Return theme based on user preference
     return getThemeData(
-      appTheme: selectedTheme,
       isDarkMode: userPreferences.isDarkModeEnabled,
       isAmoled: userPreferences.isAmoledEnabled,
     );
@@ -44,20 +30,6 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
         .updatePreferences(updatedPreferences);
 
     // Rebuild theme with new mode
-    ref.invalidateSelf();
-  }
-
-  Future<void> setAppTheme(AppTheme theme) async {
-    final currentPreferences = ref.read(userPreferencesProvider);
-
-    final updatedPreferences = currentPreferences.copyWith(
-      appTheme: theme.name,
-    );
-    await ref
-        .read(userPreferencesProvider.notifier)
-        .updatePreferences(updatedPreferences);
-
-    // Rebuild theme with new color
     ref.invalidateSelf();
   }
 
