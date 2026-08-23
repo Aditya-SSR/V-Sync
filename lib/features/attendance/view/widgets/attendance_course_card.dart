@@ -32,7 +32,7 @@ class AttendanceCourseCard extends StatelessWidget {
 
     return ListTile(
       tileColor: isDebarred
-          ? Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.3)
+          ? Colors.red.withValues(alpha: 0.06)
           : Theme.of(context).colorScheme.surfaceContainerLow,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
@@ -56,9 +56,9 @@ class AttendanceCourseCard extends StatelessWidget {
           Text(
             attendance.courseCode,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.secondary,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+              fontSize: 13,
             ),
           ),
           if (showDebarStatus) ...[
@@ -66,9 +66,7 @@ class AttendanceCourseCard extends StatelessWidget {
             Text(
               attendance.debarStatus,
               style: TextStyle(
-                color: isDebarred
-                    ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).colorScheme.primary,
+                color: isDebarred ? Colors.red : Colors.green,
                 fontWeight: FontWeight.w600,
                 fontSize: 12,
               ),

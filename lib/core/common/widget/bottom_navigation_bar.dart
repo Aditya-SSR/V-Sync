@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:vit_ap_student_app/core/providers/bottom_nav_provider.dart';
 import 'package:vit_ap_student_app/features/account/view/pages/account_page.dart';
-import 'package:vit_ap_student_app/features/attendance/view/pages/attendance_page.dart';
+import 'package:vit_ap_student_app/features/attendance/view/pages/academics_hub_page.dart';
 import 'package:vit_ap_student_app/features/home/view/pages/home_page.dart';
 import 'package:vit_ap_student_app/features/timetable/view/pages/timetable_page.dart';
 
@@ -21,7 +21,7 @@ class BottomNavBarState extends ConsumerState<BottomNavBar> {
     return const [
       HomePage(),
       TimetablePage(),
-      AttendancePage(),
+      AcademicsHubPage(),
       AccountPage(),
     ];
   }

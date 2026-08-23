@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import 'package:vit_ap_student_app/core/common/widget/course_type_tab_bar.dart';
 import 'package:vit_ap_student_app/core/common/widget/empty_content_view.dart';
 import 'package:vit_ap_student_app/core/common/widget/error_content_view.dart';
 import 'package:vit_ap_student_app/core/common/widget/loader.dart';
@@ -84,6 +82,7 @@ class AttendancePageState extends ConsumerState<AttendancePage>
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
+    final colorScheme = Theme.of(context).colorScheme;
 
     final isLoading = ref.watch(
       attendanceViewModeProvider.select((val) => val?.isLoading == true),
@@ -102,6 +101,7 @@ class AttendancePageState extends ConsumerState<AttendancePage>
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
+        automaticallyImplyLeading: true,
         title: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
@@ -111,41 +111,101 @@ class AttendancePageState extends ConsumerState<AttendancePage>
               'Attendance',
               style: Theme.of(
                 context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w500),
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             if (lastSynced != null)
               Text(
-                'Last Synced: ${timeago.format(lastSynced!)} 💾',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                ),
+                'Last synced ${timeago.format(lastSynced!)}',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(fontSize: 13),
               ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Iconsax.refresh_copy,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            onPressed: () {
-              refreshAttendanceData();
-            },
-            tooltip: 'Refresh',
-          ),
-        ],
-        bottom: CourseTypeTabBar(controller: _tabController),
       ),
       body: isLoading
           ? const Loader()
           : RefreshIndicator(
               onRefresh: () => refreshAttendanceData(),
               notificationPredicate: (notification) => notification.depth == 1,
-              child: TabBarView(
-                controller: _tabController,
-                children: [_buildBody(user, 'Theory'), _buildBody(user, 'Lab')],
+              child: Column(
+                children: [
+                  const SizedBox(height: 8),
+                  // Capsule segmented control for Theory / Lab.
+                  AnimatedBuilder(
+                    animation: _tabController,
+                    builder: (context, _) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              color: colorScheme.outlineVariant,
+                              width: 0.75,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              for (var i = 0; i < 2; i++)
+                                Expanded(
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () =>
+                                        _tabController.animateTo(i),
+                                    child: AnimatedContainer(
+                                      duration:
+                                          const Duration(milliseconds: 200),
+                                      curve: Curves.easeOutCubic,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 10,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _tabController.index == i
+                                            ? colorScheme.primary
+                                            : Colors.transparent,
+                                        borderRadius:
+                                            BorderRadius.circular(30),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          i == 0 ? 'Theory' : 'Lab',
+                                          style: TextStyle(
+                                            fontFamily: 'Outfit',
+                                            fontSize: 14,
+                                            fontWeight:
+                                                _tabController.index == i
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w500,
+                                            color: _tabController.index == i
+                                                ? colorScheme.onPrimary
+                                                : colorScheme
+                                                    .onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildBody(user, 'Theory'),
+                        _buildBody(user, 'Lab'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
     );

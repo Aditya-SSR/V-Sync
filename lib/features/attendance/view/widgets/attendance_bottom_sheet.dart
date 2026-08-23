@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:vit_ap_student_app/core/common/widget/loader.dart';
 import 'package:vit_ap_student_app/core/models/attendance.dart';
 import 'package:vit_ap_student_app/features/attendance/model/attendance_detail.dart';
 import 'package:vit_ap_student_app/features/attendance/viewmodel/detailed_attendance_viewmodel.dart';
 import 'package:vit_ap_student_app/init_dependencies.dart';
-import 'package:wave/wave.dart';
 
 void showAttendanceBottomSheet(BuildContext context, Attendance subjectInfo) {
-  final String attendanceStr = subjectInfo.attendancePercentage;
-  final double attendancePercentage = double.tryParse(attendanceStr) ?? 0.0;
-
   showModalBottomSheet<dynamic>(
     showDragHandle: true,
     isScrollControlled: true,
@@ -18,112 +15,93 @@ void showAttendanceBottomSheet(BuildContext context, Attendance subjectInfo) {
     builder: (BuildContext context) {
       return Consumer(
         builder: (context, ref, child) {
-          return DefaultTabController(
-            length: 2,
-            child: Builder(
-              builder: (context) {
-                final tabController = DefaultTabController.of(context);
+          // Fetch day-wise attendance as soon as the sheet opens.
+          final detailedState = ref.read(detailedAttendanceViewmodelProvider);
+          if (detailedState == null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ref
+                  .read(detailedAttendanceViewmodelProvider.notifier)
+                  .fetchDetailedAttendance(
+                    courseId: subjectInfo.courseId,
+                    courseType: subjectInfo.courseTypeCode,
+                  );
+            });
+          }
 
-                // Listen to tab changes and fetch data when Day-wise tab is selected
-                tabController.addListener(() {
-                  if (tabController.index == 1) {
-                    // Day-wise tab
-                    final detailedAttendanceState = ref.read(
-                      detailedAttendanceViewmodelProvider,
-                    );
-
-                    // Only fetch if we don't have data yet
-                    if (detailedAttendanceState == null) {
-                      ref
-                          .read(detailedAttendanceViewmodelProvider.notifier)
-                          .fetchDetailedAttendance(
-                            courseId: subjectInfo.courseId,
-                            courseType: subjectInfo.courseTypeCode,
-                          );
-                    }
-                  }
-                });
-
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                  ),
-                  child: SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.85,
-                    width: MediaQuery.of(context).size.width,
-                    child: Column(
+          return Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+            ),
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.75,
+              width: MediaQuery.of(context).size.width,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 12, 0),
+                    child: Row(
                       children: [
-                        // Tab Bar
-                        Container(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHigh,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: TabBar(
-                            indicatorSize: TabBarIndicatorSize.tab,
-                            dividerColor: Theme.of(context).colorScheme.surface,
-                            labelPadding: const EdgeInsets.all(0),
-                            splashBorderRadius: BorderRadius.circular(14),
-                            labelStyle: const TextStyle(fontSize: 18),
-                            unselectedLabelColor: Theme.of(
-                              context,
-                            ).colorScheme.onSecondaryContainer,
-                            labelColor: Theme.of(
-                              context,
-                            ).colorScheme.onSecondaryContainer,
-                            indicator: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.secondaryContainer,
-                              borderRadius: BorderRadius.circular(9),
-                            ),
-                            splashFactory: InkRipple.splashFactory,
-                            overlayColor: WidgetStateColor.resolveWith(
-                              (states) => Theme.of(
-                                context,
-                              ).colorScheme.secondaryContainer,
-                            ),
-                            tabs: const [
-                              Tab(
-                                text: 'Summary',
-                                icon: Icon(Icons.bar_chart_rounded, size: 20),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                subjectInfo.courseName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontFamily: 'Outfit',
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.w600,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
                               ),
-                              Tab(
-                                text: 'Day-wise',
-                                icon: Icon(
-                                  Icons.calendar_view_day_rounded,
-                                  size: 20,
+                              const SizedBox(height: 2),
+                              Text(
+                                '${subjectInfo.courseCode}  •  '
+                                '${subjectInfo.attendancePercentage}%',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 13,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        // Tab Views
-                        Expanded(
-                          child: TabBarView(
-                            children: [
-                              // Summary Tab
-                              _buildSummaryTab(
-                                context,
-                                subjectInfo,
-                                attendancePercentage,
-                              ),
-                              // Detailed Tab
-                              _buildDetailedTab(context, subjectInfo, ref),
-                            ],
+                        IconButton(
+                          onPressed: () {
+                            ref
+                                .read(
+                                    detailedAttendanceViewmodelProvider.notifier)
+                                .fetchDetailedAttendance(
+                                  courseId: subjectInfo.courseId,
+                                  courseType: subjectInfo.courseTypeCode,
+                                );
+                          },
+                          icon: Icon(
+                            Iconsax.refresh_copy,
+                            size: 20,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
+                          tooltip: 'Reload',
                         ),
                       ],
                     ),
                   ),
-                );
-              },
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: _buildDetailedList(context, subjectInfo, ref),
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -132,340 +110,40 @@ void showAttendanceBottomSheet(BuildContext context, Attendance subjectInfo) {
   );
 }
 
-Widget _buildSummaryTab(
-  BuildContext context,
-  Attendance subjectInfo,
-  double attendancePercentage,
-) {
-  final String attendanceStr = subjectInfo.attendancePercentage;
-  final double waveHeight = ((attendancePercentage) / 100) == 1
-      ? 1
-      : ((attendancePercentage) / 100);
-
-  return SingleChildScrollView(
-    padding: const EdgeInsets.all(16.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Text(
-            'Summary',
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.secondaryContainer,
-            borderRadius: BorderRadius.circular(9),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(9),
-                      child: WaveWidget(
-                        backgroundColor: Colors.blue.shade800,
-                        waveAmplitude: 0,
-                        config: CustomConfig(
-                          gradients: [
-                            [Colors.blue.shade600, Colors.blue.shade500],
-                            [Colors.blue.shade400, Colors.blue.shade300],
-                            [Colors.blue.shade200, Colors.cyan.shade100],
-                          ],
-                          gradientBegin: Alignment.bottomLeft,
-                          gradientEnd: Alignment.topRight,
-                          durations: [8000, 10000, 12000],
-                          heightPercentages: [
-                            1 - waveHeight,
-                            1 - waveHeight + 0.02,
-                            1 - waveHeight + 0.05,
-                          ],
-                          blur: const MaskFilter.blur(BlurStyle.solid, 0),
-                        ),
-                        size: const Size(125, 300),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Column(
-                      children: [
-                        _buildSummaryCard(
-                          context,
-                          title: 'Overall Attendance',
-                          value: '$attendanceStr%',
-                        ),
-                        const SizedBox(height: 8),
-                        const SizedBox(height: 8),
-                        _buildSummaryCard(
-                          context,
-                          title: 'Recent Attendance',
-                          value: '${subjectInfo.betweenAttendancePercentage}%',
-                        ),
-                        const SizedBox(height: 8),
-                        _buildSummaryCard(
-                          context,
-                          title: 'Attended Classes',
-                          value:
-                              '${subjectInfo.attendedClasses}/${subjectInfo.totalClasses}',
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        _buildCourseInfoSection(context, subjectInfo),
-      ],
-    ),
-  );
-}
-
-Widget _buildSummaryCard(
-  BuildContext context, {
-  required String title,
-  required String value,
-}) {
-  return Container(
-    height: 94,
-    width: MediaQuery.sizeOf(context).width - 181,
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.centerRight,
-        colors: [Colors.blue.shade500, Colors.blue.shade900],
-      ),
-      borderRadius: BorderRadius.circular(9),
-    ),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w800,
-              fontSize: 32,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildCourseInfoSection(BuildContext context, Attendance subjectInfo) {
-  return Container(
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surfaceContainerHigh,
-      borderRadius: BorderRadius.circular(9),
-    ),
-    child: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: [
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildInfoRow(context, 'Course Name', subjectInfo.courseName),
-              _buildInfoRow(context, 'Course Code', subjectInfo.courseCode),
-              _buildInfoRow(context, 'Course Slot', subjectInfo.courseSlot),
-              _buildInfoRow(context, 'Course Type', subjectInfo.courseType),
-            ],
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget _buildInfoRow(BuildContext context, String label, String value) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSecondaryContainer,
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildDetailedTab(
+Widget _buildDetailedList(
   BuildContext context,
   Attendance subjectInfo,
   WidgetRef ref,
 ) {
-  return Padding(
-    padding: const EdgeInsets.all(16.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header with refresh button
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Day-wise Attendance',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-            ),
-            Consumer(
-              builder: (context, ref, child) {
-                final detailedAttendanceState = ref.watch(
-                  detailedAttendanceViewmodelProvider,
+  return Consumer(
+    builder: (context, ref, child) {
+      final detailedAttendanceState = ref.watch(
+        detailedAttendanceViewmodelProvider,
+      );
+
+      if (detailedAttendanceState == null ||
+          detailedAttendanceState.isLoading) {
+        return const Center(child: Loader());
+      }
+
+      return detailedAttendanceState.when(
+        data: (attendanceDetails) =>
+            _buildAttendanceTable(context, attendanceDetails),
+        loading: () => const Center(child: Loader()),
+        error: (error, stackTrace) => _buildErrorState(
+          context,
+          error.toString(),
+          () {
+            ref
+                .read(detailedAttendanceViewmodelProvider.notifier)
+                .fetchDetailedAttendance(
+                  courseId: subjectInfo.courseId,
+                  courseType: subjectInfo.courseTypeCode,
                 );
-
-                return IconButton.filled(
-                  onPressed: () {
-                    ref
-                        .read(detailedAttendanceViewmodelProvider.notifier)
-                        .fetchDetailedAttendance(
-                          courseId: subjectInfo.courseId,
-                          courseType: subjectInfo.courseTypeCode,
-                        );
-                  },
-                  icon: detailedAttendanceState?.isLoading == true
-                      ? const Loader()
-                      : const Icon(Icons.refresh_rounded),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
-                  ),
-                );
-              },
-            ),
-          ],
+          },
         ),
-        const SizedBox(height: 16),
-        // Attendance table
-        Expanded(
-          child: Consumer(
-            builder: (context, ref, child) {
-              final detailedAttendanceState = ref.watch(
-                detailedAttendanceViewmodelProvider,
-              );
-
-              if (detailedAttendanceState == null) {
-                // Show loading immediately since data will be fetched when tab is accessed
-                return const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Loader(),
-                      SizedBox(height: 16),
-                      Text('Loading detailed attendance...'),
-                    ],
-                  ),
-                );
-              }
-
-              return detailedAttendanceState.when(
-                data: (attendanceDetails) =>
-                    _buildAttendanceTable(context, attendanceDetails),
-                loading: () => const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Loader(),
-                      SizedBox(height: 16),
-                      Text('Loading detailed attendance...'),
-                    ],
-                  ),
-                ),
-                error: (error, stackTrace) =>
-                    _buildErrorState(context, error.toString(), () {
-                      ref
-                          .read(detailedAttendanceViewmodelProvider.notifier)
-                          .fetchDetailedAttendance(
-                            courseId: subjectInfo.courseId,
-                            courseType: subjectInfo.courseTypeCode,
-                          );
-                    }),
-              );
-            },
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildEmptyState(BuildContext context, VoidCallback onRefresh) {
-  return Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          Icons.calendar_view_day_outlined,
-          size: 64,
-          color: Theme.of(context).colorScheme.outline,
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'No detailed attendance data',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Tap the refresh button to load day-wise attendance',
-          style: TextStyle(
-            fontSize: 14,
-            color: Theme.of(context).colorScheme.outline,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 24),
-        FilledButton.icon(
-          onPressed: onRefresh,
-          icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Load Data'),
-        ),
-      ],
-    ),
+      );
+    },
   );
 }
 
@@ -474,37 +152,38 @@ Widget _buildErrorState(
   String error,
   VoidCallback onRetry,
 ) {
+  final colorScheme = Theme.of(context).colorScheme;
+
   return Center(
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(
           Icons.error_outline_rounded,
-          size: 64,
-          color: Theme.of(context).colorScheme.error,
+          size: 48,
+          color: colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Failed to load day-wise attendance',
+          style: TextStyle(
+            fontFamily: 'Outfit',
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: colorScheme.onSurface,
+          ),
         ),
         const SizedBox(height: 16),
-        Text(
-          'Failed to load data',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          error,
-          style: TextStyle(
-            fontSize: 14,
-            color: Theme.of(context).colorScheme.outline,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 24),
-        FilledButton.icon(
+        OutlinedButton.icon(
           onPressed: onRetry,
-          icon: const Icon(Icons.refresh_rounded),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: colorScheme.onSurface,
+            side: BorderSide(color: colorScheme.outlineVariant),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          icon: const Icon(Iconsax.refresh_copy, size: 16),
           label: const Text('Retry'),
         ),
       ],
@@ -516,158 +195,145 @@ Widget _buildAttendanceTable(
   BuildContext context,
   List<AttendanceDetail> attendanceDetails,
 ) {
+  final colorScheme = Theme.of(context).colorScheme;
+
   if (attendanceDetails.isEmpty) {
-    return _buildEmptyState(context, () {});
+    return Center(
+      child: Text(
+        'No day-wise records yet',
+        style: TextStyle(
+          fontFamily: 'Inter',
+          fontSize: 13,
+          color: colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
   }
 
-  return Container(
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surfaceContainerHigh,
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Column(
-      children: [
-        // Table Header
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              topRight: Radius.circular(12),
+  return Column(
+    children: [
+      // Column labels
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Text(
+                'DATE',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.8,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
             ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              SizedBox(
-                width: 40,
-                child: Text(
-                  'SNo.',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    fontSize: 14,
-                  ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                'DAY/TIME',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.8,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
-              Expanded(
-                child: Text(
-                  '  Date',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    fontSize: 14,
-                  ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                'STATUS',
+                textAlign: TextAlign.end,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.8,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
-              Expanded(
-                child: Text(
-                  'Day/Time',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    fontSize: 14,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  'Status',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    fontSize: 14,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-        // Table Body
-        Expanded(
-          child: ListView.separated(
-            padding: EdgeInsets.zero,
-            itemCount: attendanceDetails.length,
-            separatorBuilder: (context, index) => Divider(
-              height: 1,
-              color: Theme.of(
-                context,
-              ).colorScheme.outline.withValues(alpha: 0.2),
+      ),
+      Expanded(
+        child: ListView.separated(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+          itemCount: attendanceDetails.length,
+          separatorBuilder: (context, index) => Container(
+            height: 1,
+            margin: const EdgeInsets.symmetric(vertical: 2),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  colorScheme.outlineVariant.withValues(alpha: 0),
+                  colorScheme.outlineVariant.withValues(alpha: 0.6),
+                  colorScheme.outlineVariant.withValues(alpha: 0),
+                ],
+              ),
             ),
-            itemBuilder: (context, index) {
-              final detail = attendanceDetails[index];
-              final isPresent = detail.status.toLowerCase() == 'present';
-              final isAbsent = detail.status.toLowerCase() == 'absent';
+          ),
+          itemBuilder: (context, index) {
+            final detail = attendanceDetails[index];
+            final isPresent = detail.status.toLowerCase() == 'present';
+            final isAbsent = detail.status.toLowerCase() == 'absent';
 
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: index.isEven
-                      ? Theme.of(context).colorScheme.surfaceContainerHigh
-                      : Theme.of(context).colorScheme.surfaceContainer,
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 40,
-                      child: Text(
-                        ' ${index + 1}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 9),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      _formatDate(detail.date),
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 13,
+                        color: colorScheme.onSurface,
                       ),
                     ),
-                    Expanded(
-                      child: Text(
-                        _formatDate(detail.date),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      detail.dayTime,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                    Expanded(
-                      child: Text(
-                        detail.dayTime,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        textAlign: TextAlign.center,
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      detail.status,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: isPresent
+                            ? Colors.green
+                            : isAbsent
+                                ? Colors.red
+                                : colorScheme.onSurfaceVariant,
                       ),
+                      textAlign: TextAlign.end,
                     ),
-                    Expanded(
-                      child: Text(
-                        detail.status,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: isPresent
-                              ? Colors.green
-                              : isAbsent
-                              ? Colors.red
-                              : Colors.blue,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
-      ],
-    ),
+      ),
+    ],
   );
 }
 

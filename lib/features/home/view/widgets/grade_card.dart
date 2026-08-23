@@ -3,12 +3,10 @@ import 'package:vit_ap_student_app/core/models/grade_history.dart';
 
 class GradeCard extends StatelessWidget {
   final Course course;
-  final Color gradeColor;
 
   const GradeCard({
     super.key,
     required this.course,
-    required this.gradeColor,
   });
 
   @override
@@ -36,13 +34,13 @@ class GradeCard extends StatelessWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: gradeColor,
+                    color: Theme.of(context).colorScheme.primary,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     course.grade,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),

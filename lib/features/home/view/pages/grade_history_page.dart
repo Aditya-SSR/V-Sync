@@ -326,7 +326,6 @@ class _GradeHistoryPageState extends ConsumerState<GradeHistoryPage> {
                       padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: GradeCard(
                         course: course,
-                        gradeColor: getGradeColor(course.grade),
                       ),
                     );
                   },

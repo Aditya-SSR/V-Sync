@@ -6,10 +6,8 @@ import 'package:vit_ap_student_app/core/providers/current_user.dart';
 import 'package:vit_ap_student_app/core/services/demo_service.dart';
 import 'package:vit_ap_student_app/core/utils/launch_web.dart';
 import 'package:vit_ap_student_app/core/utils/show_snackbar.dart';
-import 'package:vit_ap_student_app/core/utils/show_toast.dart';
 import 'package:vit_ap_student_app/features/account/view/pages/manage_credentials_page.dart';
 import 'package:vit_ap_student_app/features/account/view/pages/settings_page.dart';
-import 'package:vit_ap_student_app/features/account/view/widgets/footer.dart';
 import 'package:vit_ap_student_app/features/account/view/widgets/settings_tile.dart';
 import 'package:vit_ap_student_app/features/account/viewmodel/account_viewmodel.dart';
 import 'package:vit_ap_student_app/features/auth/view/pages/login_page.dart';
@@ -26,28 +24,6 @@ class AccountPage extends ConsumerStatefulWidget {
 
 class _AccountPageState extends ConsumerState<AccountPage> {
   bool _isNavigating = false;
-  int _developerTapCount = 0;
-  bool _isDeveloperModeEnabled = false;
-  static const int _requiredTaps = 7;
-
-  void _handleVersionTap() {
-    setState(() {
-      _developerTapCount++;
-      if (_developerTapCount > 7 && _isDeveloperModeEnabled == true) {
-        showToast(context, 'You are already an Developer!');
-      }
-      if (_developerTapCount >= _requiredTaps && !_isDeveloperModeEnabled) {
-        _isDeveloperModeEnabled = true;
-        showToast(context, '🔧 Developer mode enabled!');
-      } else if (!_isDeveloperModeEnabled) {
-        final remaining = _requiredTaps - _developerTapCount;
-
-        if (remaining <= 3 && remaining > 0) {
-          showToast(context, '$remaining taps to enable developer mode');
-        }
-      }
-    });
-  }
 
   Future<void> _navigateTo(WidgetBuilder builder) async {
     if (_isNavigating) return;
@@ -135,19 +111,19 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                         builder: (context, snapshot) {
                           return Text(
                             snapshot.data ?? 'Select semester',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontFamily: 'Inter',
                               fontSize: 14,
-                              color: colorScheme.onSurfaceVariant,
+                              color: Colors.blue,
                             ),
                           );
                         },
                       ),
                       const SizedBox(width: 6),
-                      Icon(
+                      const Icon(
                         Iconsax.edit_copy,
                         size: 15,
-                        color: colorScheme.onSurfaceVariant,
+                        color: Colors.blue,
                       ),
                     ],
                   ),
@@ -210,9 +186,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                       color: colorScheme.onSurface,
                     ),
                     onTap: () => _navigateTo(
-                      (builder) => SettingsPage(
-                        isDeveloperModeEnabled: _isDeveloperModeEnabled,
-                      ),
+                      (builder) => const SettingsPage(),
                     ),
                   ),
                 ],
@@ -257,7 +231,6 @@ class _AccountPageState extends ConsumerState<AccountPage> {
               ),
 
               const SizedBox(height: 36),
-              Footer(onVersionTap: _handleVersionTap),
             ],
           ),
         ),

@@ -31,8 +31,8 @@ class AttendancePercentageText extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: isLowAttendance
-                ? lowAttendanceColor ?? Theme.of(context).colorScheme.error
-                : textColor ?? Theme.of(context).colorScheme.primary,
+                ? lowAttendanceColor ?? Colors.red
+                : textColor ?? Theme.of(context).colorScheme.onSurface,
             fontSize: fontSize ?? 36,
             fontWeight: textFontWeight ?? FontWeight.w600,
           ),
@@ -43,8 +43,7 @@ class AttendancePercentageText extends StatelessWidget {
             child: Text(
               '-$deficit%',
               style: TextStyle(
-                color:
-                    lowAttendanceColor ?? Theme.of(context).colorScheme.error,
+                color: lowAttendanceColor ?? Colors.red,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),

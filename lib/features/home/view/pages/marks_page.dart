@@ -117,12 +117,11 @@ class _MarksPageState extends ConsumerState<MarksPage>
             ),
             if (lastSynced != null)
               Text(
-                'Last Synced: ${timeago.format(lastSynced!)} 💾',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                ),
+                'Last synced ${timeago.format(lastSynced!)}',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(fontSize: 13),
               ),
           ],
         ),
@@ -201,7 +200,7 @@ class _MarksPageState extends ConsumerState<MarksPage>
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
           child: ListTile(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(9),
+              borderRadius: BorderRadius.circular(15),
             ),
             tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
             title: Column(
@@ -211,8 +210,8 @@ class _MarksPageState extends ConsumerState<MarksPage>
                 Text(
                   course.courseTitle,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontSize: 24,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 17,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -220,43 +219,45 @@ class _MarksPageState extends ConsumerState<MarksPage>
                 Text(
                   course.faculty,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontFamily: 'Inter',
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 12.5,
                   ),
                 ),
                 Text(
                   course.courseCode,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontFamily: 'Inter',
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 12.5,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 RichText(
                   text: TextSpan(
                     text: totalWeightage.toStringAsFixed(0),
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 30,
+                      fontWeight: FontWeight.w700,
                     ),
                     children: <TextSpan>[
                       TextSpan(
-                        text: '/',
+                        text: ' / ',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       TextSpan(
                         text: maxWeightage.toStringAsFixed(0),
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
