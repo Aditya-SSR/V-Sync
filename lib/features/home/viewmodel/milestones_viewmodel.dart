@@ -72,4 +72,14 @@ class MilestonesNotifier extends Notifier<List<Milestone>> {
     state = state.where((m) => m.id != id).toList();
     await _persist();
   }
+
+  /// Drops countdowns that finished more than 10 minutes ago.
+  Future<void> removeExpired() async {
+    final cutoff = DateTime.now().subtract(const Duration(minutes: 10));
+    final filtered =
+        state.where((m) => m.targetDate.isAfter(cutoff)).toList();
+    if (filtered.length == state.length) return;
+    state = filtered;
+    await _persist();
+  }
 }

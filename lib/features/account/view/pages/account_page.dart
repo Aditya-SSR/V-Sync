@@ -53,7 +53,6 @@ class _AccountPageState extends ConsumerState<AccountPage> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
-    final colorScheme = Theme.of(context).colorScheme;
 
     ref.listen(accountViewModelProvider, (_, next) {
       next?.when(
@@ -143,10 +142,6 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                       isLast: false,
                       title: 'Manage credentials',
                       leadingIcon: const Icon(Iconsax.lock_1_copy),
-                      trailingIcon: Icon(
-                        Icons.arrow_forward_rounded,
-                        color: colorScheme.onSurface,
-                      ),
                       onTap: () async {
                         final result = await Navigator.push<bool>(
                           context,
@@ -168,10 +163,6 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                     infoText:
                         'When synced, latest data will be fetched from VTOP.',
                     leadingIcon: const Icon(Iconsax.repeat),
-                    trailingIcon: Icon(
-                      Icons.arrow_forward_rounded,
-                      color: colorScheme.onSurface,
-                    ),
                     onTap: () async {
                       await ref.read(accountViewModelProvider.notifier).sync();
                     },
@@ -181,10 +172,6 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                     isLast: true,
                     title: 'Appearance',
                     leadingIcon: const Icon(Iconsax.moon_copy),
-                    trailingIcon: Icon(
-                      Icons.arrow_forward_rounded,
-                      color: colorScheme.onSurface,
-                    ),
                     onTap: () => _navigateTo(
                       (builder) => const SettingsPage(),
                     ),
@@ -200,11 +187,11 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                   SettingTile(
                     isFirst: true,
                     isLast: false,
-                    title: 'Star us on GitHub',
-                    leadingIcon: const Icon(Iconsax.star),
+                    title: 'Source code',
+                    leadingIcon: const Icon(Iconsax.code_copy),
                     onTap: () async {
                       await directToWeb(
-                        'https://github.com/VITAP-Student-Project/vitap_student_app',
+                        'https://github.com/dgk1503/V-Sync',
                       );
                     },
                   ),

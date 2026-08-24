@@ -131,83 +131,64 @@ class _TimetablePageState extends ConsumerState<TimetablePage>
     return Scaffold(
       body: activeDays.isEmpty
           ? _buildCompletelyEmpty(context)
-          : RefreshIndicator(
-              onRefresh: refresh,
-              notificationPredicate: (notification) => notification.depth == 2,
-              child: NestedScrollView(
-                physics: const BouncingScrollPhysics(),
-                headerSliverBuilder: (context, innerBoxIsScrolled) {
-                  return [
-                    SliverToBoxAdapter(
-                      child: SafeArea(
-                        top: true,
-                        bottom: false,
-                        child: Column(
+          : SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: AnimatedBuilder(
+                      animation: controller,
+                      builder: (context, _) {
+                        return Row(
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                24.0,
-                                12.0,
-                                24.0,
-                                0,
+                            for (var i = 0; i < activeDays.length; i++)
+                              Expanded(
+                                child: _buildDayChip(
+                                  context,
+                                  letter: _dayLetters[activeDays[i]],
+                                  isSelected: controller.index == i,
+                                  onTap: () => controller.animateTo(i),
+                                ),
                               ),
-                              child: AnimatedBuilder(
-                                animation: controller,
-                                builder: (context, _) {
-                                  return Row(
-                                    children: [
-                                      for (var i = 0;
-                                          i < activeDays.length;
-                                          i++)
-                                        Expanded(
-                                          child: _buildDayChip(
-                                            context,
-                                            letter:
-                                                _dayLetters[activeDays[i]],
-                                            isSelected:
-                                                controller.index == i,
-                                            onTap: () =>
-                                                controller.animateTo(i),
-                                          ),
-                                        ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            AnimatedBuilder(
-                              animation: controller,
-                              builder: (context, _) {
-                                final dayIndex =
-                                    _getSelectedDayIndex(activeDays);
-                                return Text(
-                                  _buildSubtitle(timetable, dayIndex),
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(fontSize: 13),
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 8),
                           ],
-                        ),
-                      ),
+                        );
+                      },
                     ),
-                  ];
-                },
-                body: isLoading
-                    ? const Loader()
-                    : TabBarView(
-                        controller: controller,
-                        physics: const BouncingScrollPhysics(),
-                        children: [
-                          for (final dayIndex in activeDays)
-                            ScheduleList(day: _dayNames[dayIndex]),
-                        ],
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  AnimatedBuilder(
+                    animation: controller,
+                    builder: (context, _) {
+                      final dayIndex = _getSelectedDayIndex(activeDays);
+                      return Text(
+                        _buildSubtitle(timetable, dayIndex),
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(fontSize: 13),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: isLoading
+                        ? const Loader()
+                        : TabBarView(
+                            controller: controller,
+                            physics: const BouncingScrollPhysics(),
+                            children: [
+                              for (final dayIndex in activeDays)
+                                ScheduleList(
+                                  day: _dayNames[dayIndex],
+                                  onRefresh: refresh,
+                                ),
+                            ],
+                          ),
+                  ),
+                ],
               ),
             ),
     );

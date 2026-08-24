@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:vit_ap_student_app/core/common/widget/error_content_view.dart';
 import 'package:vit_ap_student_app/core/common/widget/loader.dart';
@@ -9,7 +8,6 @@ import 'package:vit_ap_student_app/core/providers/current_user.dart';
 import 'package:vit_ap_student_app/core/providers/user_preferences_notifier.dart';
 import 'package:vit_ap_student_app/core/utils/exam_schedule/exam_schedule_utils.dart';
 import 'package:vit_ap_student_app/core/utils/show_snackbar.dart';
-import 'package:vit_ap_student_app/features/home/view/widgets/exam_schedule/exam_schedule_tab_bar.dart';
 import 'package:vit_ap_student_app/features/home/view/widgets/exam_schedule/exam_schedule_tab_view.dart';
 import 'package:vit_ap_student_app/features/home/viewmodel/exam_schedule_viewmodel.dart';
 
@@ -110,56 +108,118 @@ class _MyExamScheduleState extends ConsumerState<ExamSchedulePage>
     });
 
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: false,
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Exam Schedule',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w500),
-            ),
-            if (lastSynced != null)
-              Text(
-                'Last Synced: ${timeago.format(lastSynced!)} 💾',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-          ],
-        ),
-        bottom: ExamScheduleTabBar(tabController: _tabController),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Iconsax.refresh_copy,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            onPressed: () {
-              refreshExamSchedule();
-            },
-            tooltip: 'Refresh',
-          ),
-        ],
+      body: SafeArea(
+        bottom: false,
+        child: user == null
+            ? const ErrorContentView(error: 'User not found!')
+            : isLoading
+                ? const Loader()
+                : RefreshIndicator(
+                    onRefresh: refreshExamSchedule,
+                    notificationPredicate: (notification) =>
+                        notification.depth == 1,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 12),
+                        if (lastSynced != null)
+                          Text(
+                            'Last synced ${timeago.format(lastSynced!)}',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 13,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                          ),
+                        const SizedBox(height: 12),
+                        // Capsule segmented control for CAT-1 / CAT-2 / FAT.
+                        AnimatedBuilder(
+                          animation: _tabController,
+                          builder: (context, _) {
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Container(
+                                padding: const EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerLow,
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: Row(
+                                  children: [
+                                    for (var i = 0; i < 3; i++)
+                                      Expanded(
+                                        child: GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap: () =>
+                                              _tabController.animateTo(i),
+                                          child: AnimatedContainer(
+                                            duration: const Duration(
+                                                milliseconds: 200),
+                                            curve: Curves.easeOutCubic,
+                                            padding: const EdgeInsets
+                                                .symmetric(vertical: 11),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  _tabController.index == i
+                                                      ? Theme.of(context)
+                                                          .colorScheme
+                                                          .primary
+                                                      : Colors.transparent,
+                                              borderRadius:
+                                                  BorderRadius.circular(30),
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                const [
+                                                  'CAT - 1',
+                                                  'CAT - 2',
+                                                  'FAT',
+                                                ][i],
+                                                style: TextStyle(
+                                                  fontFamily: 'Outfit',
+                                                  fontSize: 14.5,
+                                                  fontWeight:
+                                                      _tabController.index ==
+                                                              i
+                                                          ? FontWeight.w600
+                                                          : FontWeight.w500,
+                                                  color: _tabController
+                                                              .index ==
+                                                          i
+                                                      ? Theme.of(context)
+                                                          .colorScheme
+                                                          .onPrimary
+                                                      : Theme.of(context)
+                                                          .colorScheme
+                                                          .onSurfaceVariant,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        Expanded(
+                          child: ExamScheduleTabView(
+                            tabController: _tabController,
+                            examSchedule: examScheduleList,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
       ),
-      body: user == null
-          ? const ErrorContentView(error: 'User not found!')
-          : isLoading
-          ? const Loader()
-          : RefreshIndicator(
-              onRefresh: refreshExamSchedule,
-              notificationPredicate: (notification) => notification.depth == 1,
-              child: ExamScheduleTabView(
-                tabController: _tabController,
-                examSchedule: examScheduleList,
-              ),
-            ),
     );
   }
 }

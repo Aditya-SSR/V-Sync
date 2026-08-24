@@ -203,13 +203,13 @@ class ExamCard extends StatelessWidget {
   Color _statusColor(_ExamStatus status, ColorScheme colorScheme) {
     switch (status) {
       case _ExamStatus.today:
-        return colorScheme.primary;
+        return Colors.red;
       case _ExamStatus.upcoming:
-        return colorScheme.tertiary;
+        return const Color(0xFFF9A825); // amber
       case _ExamStatus.completed:
-        return colorScheme.secondary;
+        return Colors.green;
       case _ExamStatus.unknown:
-        return colorScheme.primary;
+        return colorScheme.onSurfaceVariant;
     }
   }
 

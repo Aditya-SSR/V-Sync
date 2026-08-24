@@ -10,8 +10,9 @@ import 'package:vit_ap_student_app/core/utils/get_classes.dart';
 
 class ScheduleList extends ConsumerStatefulWidget {
   final String day;
+  final Future<void> Function()? onRefresh;
 
-  const ScheduleList({super.key, required this.day});
+  const ScheduleList({super.key, required this.day, this.onRefresh});
 
   @override
   ConsumerState<ScheduleList> createState() => _ScheduleListState();
@@ -147,15 +148,20 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
     final afternoon =
         classes.where((c) => _parseMinutes(c.startTime) >= 720).toList();
 
-    return ListView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-      children: [
-        ..._buildSection(context, 'Morning', morning),
-        if (morning.isNotEmpty && afternoon.isNotEmpty)
-          _sectionDivider(context),
-        ..._buildSection(context, 'Afternoon', afternoon),
-      ],
+    return RefreshIndicator(
+      onRefresh: () async {
+        await widget.onRefresh?.call();
+      },
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+        children: [
+          ..._buildSection(context, 'Morning', morning),
+          if (morning.isNotEmpty && afternoon.isNotEmpty)
+            _sectionDivider(context),
+          ..._buildSection(context, 'Afternoon', afternoon),
+        ],
+      ),
     );
   }
 

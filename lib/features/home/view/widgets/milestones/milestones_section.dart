@@ -25,9 +25,12 @@ class _MilestonesSectionState extends ConsumerState<MilestonesSection> {
   void initState() {
     super.initState();
     _startAutoScroll();
-    // Rebuild every minute so the remaining days/hours stay accurate.
+    // Rebuild every minute so the remaining days/hours stay accurate,
+    // and clean up countdowns that finished more than 10 minutes ago.
     _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
-      if (mounted) setState(() {});
+      if (!mounted) return;
+      ref.read(milestonesProvider.notifier).removeExpired();
+      setState(() {});
     });
   }
 
