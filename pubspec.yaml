@@ -75,7 +75,6 @@ flutter:
     - .env
     - assets/
     - assets/images/
-    - assets/images/pfp/
     - assets/images/logo/
     - assets/images/icons/
     - assets/demo/

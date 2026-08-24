@@ -66,6 +66,26 @@ class MessMenuService {
       }
     }
 
+    // Month hint: scan every XML part of the workbook for the explicit
+    // "MONTH OF <name>" phrase (the title row of the monthly sheets).
+    var monthHint = -1;
+    final monthOfRegex = RegExp(
+      'month of\\s*[:\\- ]*([a-z]+)',
+      caseSensitive: false,
+    );
+    for (final file in archive) {
+      if (!file.name.endsWith('.xml')) continue;
+      final match =
+          monthOfRegex.firstMatch(utf8.decode(file.content).toLowerCase());
+      if (match != null) {
+        final idx = _monthIndexFromName(match.group(1)!);
+        if (idx != -1) {
+          monthHint = idx;
+          break;
+        }
+      }
+    }
+
     // Workbook: sheet name -> r:id
     final workbookFile = findFile('xl/workbook.xml');
     if (workbookFile == null) {
@@ -93,43 +113,10 @@ class MessMenuService {
       final id = rel.getAttribute('Id', namespaceUri: '*');
       final target = rel.getAttribute('Target', namespaceUri: '*');
       if (id != null && target != null) {
-        ridToTarget[id] = target.startsWith('/xl/') 
+        ridToTarget[id] = target.startsWith('/xl/')
             ? target.substring(1)
             : 'xl/${target.replaceFirst(RegExp(r'^xl/'), '')}';
       }
-    }
-
-    // Styles: map cell style index -> "font is red" (special items are
-    // written in red in the monthly sheets).
-    final fontIsRed = <bool>[];
-    final styleFontIds = <int>[];
-    final stylesFile = findFile('xl/styles.xml');
-    if (stylesFile != null) {
-      try {
-        final styles = XmlDocument.parse(utf8.decode(stylesFile.content));
-        for (final font in styles.findAllElements('font', namespaceUri: '*')) {
-          var isRed = false;
-          for (final color in font.findElements('color', namespaceUri: '*')) {
-            final rgb = color.getAttribute('rgb', namespaceUri: '*') ?? '';
-            // ARGB like FFFF0000 -> pure red.
-            if (rgb.toUpperCase().endsWith('FF0000')) isRed = true;
-          }
-          fontIsRed.add(isRed);
-        }
-        for (final xf in styles.findAllElements('xf', namespaceUri: '*')) {
-          final fontId =
-              int.tryParse(xf.getAttribute('fontId', namespaceUri: '*') ?? '');
-          styleFontIds.add(fontId ?? 0);
-        }
-      } catch (e) {
-        debugPrint('Could not read styles: $e');
-      }
-    }
-    bool isSpecialCell(String? styleIdx) {
-      final s = int.tryParse(styleIdx ?? '');
-      if (s == null || s < 0 || s >= styleFontIds.length) return false;
-      final fontId = styleFontIds[s];
-      return fontId >= 0 && fontId < fontIsRed.length && fontIsRed[fontId];
     }
 
     // Pick the sheet: prefer the regular "Veg & Non-Veg" menu, fall back to
@@ -148,13 +135,12 @@ class MessMenuService {
       final sheetFile = findFile(target);
       if (sheetFile == null) continue;
       try {
-        final sheet = _readSheet(
-          utf8.decode(sheetFile.content),
-          sharedStrings,
-          isSpecialCell,
+        final sheet = _readSheet(utf8.decode(sheetFile.content), sharedStrings);
+        final menu = _menuFromGrid(
+          sheet.grid,
+          sheet.dayBlockRanges,
+          monthHint,
         );
-        final menu = _menuFromGrid(sheet.grid, sheet.specialGrid,
-            sheet.dayBlockRanges);
         if (menu != null) return menu;
       } catch (e) {
         lastError = e;
@@ -164,38 +150,38 @@ class MessMenuService {
         'Could not find a mess menu table in this file. $lastError');
   }
 
-  /// Reads a worksheet into a grid of strings indexed [row][col] (plus a
-  /// parallel grid marking red-font "special" cells), and collects the
-  /// merged ranges of column A (the day-label column), which mark the
-  /// exact row span of each day group.
-  static ({
-    List<List<String>> grid,
-    List<List<bool>> specialGrid,
-    List<(int, int)> dayBlockRanges,
-  }) _readSheet(
-    String xml,
-    List<String> sharedStrings,
-    bool Function(String?) isSpecialCell,
-  ) {
+  static int _monthIndexFromName(String name) {
+    const months = [
+      'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december',
+    ];
+    final lower = name.toLowerCase();
+    for (var m = 0; m < months.length; m++) {
+      if (lower.startsWith(months[m].substring(0, 3))) return m + 1;
+    }
+    return -1;
+  }
+
+  /// Reads a worksheet into a grid of strings indexed [row][col], and
+  /// collects the merged ranges of column A (the day-label column), which
+  /// mark the exact row span of each day group.
+  static ({List<List<String>> grid, List<(int, int)> dayBlockRanges})
+      _readSheet(String xml, List<String> sharedStrings) {
     final doc = XmlDocument.parse(xml);
     final grid = <List<String>>[];
-    final specialGrid = <List<bool>>[];
 
     for (final row in doc.findAllElements('row', namespaceUri: '*')) {
       final rowAttr = row.getAttribute('r', namespaceUri: '*');
       final rowIndex = (int.tryParse(rowAttr ?? '') ?? grid.length + 1) - 1;
       while (grid.length <= rowIndex) {
         grid.add(<String>[]);
-        specialGrid.add(<bool>[]);
       }
       final cells = grid[rowIndex];
-      final specials = specialGrid[rowIndex];
 
       for (final c in row.findElements('c', namespaceUri: '*')) {
         final ref = c.getAttribute('r', namespaceUri: '*') ?? '';
         final col = _columnIndexFromRef(ref);
         final type = c.getAttribute('t', namespaceUri: '*');
-        final isSpecial = isSpecialCell(c.getAttribute('s', namespaceUri: '*'));
 
         String value = '';
         if (type == 'inlineStr') {
@@ -223,11 +209,7 @@ class MessMenuService {
         while (cells.length <= col) {
           cells.add('');
         }
-        while (specials.length <= col) {
-          specials.add(false);
-        }
         cells[col] = value.trim();
-        specials[col] = isSpecial;
       }
     }
 
@@ -247,11 +229,7 @@ class MessMenuService {
     }
     dayBlockRanges.sort((a, b) => a.$1.compareTo(b.$1));
 
-    return (
-      grid: grid,
-      specialGrid: specialGrid,
-      dayBlockRanges: dayBlockRanges,
-    );
+    return (grid: grid, dayBlockRanges: dayBlockRanges);
   }
 
   /// Converts a cell reference like "BC12" into a zero-based column index.
@@ -268,8 +246,8 @@ class MessMenuService {
   /// look like a mess menu.
   static MessMenu? _menuFromGrid(
     List<List<String>> grid,
-    List<List<bool>> specialGrid,
     List<(int, int)> dayBlockRanges,
+    int monthHint,
   ) {
     // 1. Locate the header row (contains "Breakfast").
     var headerRow = -1;
@@ -289,55 +267,46 @@ class MessMenuService {
     }
     if (headerRow == -1) return null;
 
-    // 2. Month: prefer the explicit "MONTH OF <name>" phrase anywhere in
-    // the sheet, then any month name anywhere, then the current month.
-    final months = const [
-      'january', 'february', 'march', 'april', 'may', 'june',
-      'july', 'august', 'september', 'october', 'november', 'december',
-    ];
-    var month = -1;
-    var monthName = '';
-
-    final everything = grid
-        .expand((row) => row)
-        .join('\n')
-        .toLowerCase();
-    final monthOfMatch = RegExp('month of\\s+([a-z]+)').firstMatch(everything);
-    if (monthOfMatch != null) {
-      final candidate = monthOfMatch.group(1)!;
-      final idx = months.indexOf(candidate);
-      if (idx != -1) {
-        month = idx + 1;
-        monthName = candidate;
+    // 2. Month: trust the workbook-wide "MONTH OF <name>" hint first, then
+    // any month name inside this sheet, then the current month.
+    var month = monthHint;
+    if (month == -1) {
+      final everything =
+          grid.expand((row) => row).join('\n').toLowerCase();
+      final match =
+          RegExp('month of\\s*[:\\- ]*([a-z]+)').firstMatch(everything);
+      if (match != null) {
+        month = _monthIndexFromName(match.group(1)!) ;
+        if (month == -1) month = -1;
       }
     }
     if (month == -1) {
-      for (var m = months.length - 1; m >= 0; m--) {
-        if (everything.contains(months[m])) {
-          month = m + 1;
-          monthName = months[m];
+      final everything =
+          grid.expand((row) => row).join('\n').toLowerCase();
+      for (var m = 12; m >= 1; m--) {
+        if (everything.contains(_monthName(m))) {
+          month = m;
           break;
         }
       }
     }
     if (month == -1) {
       month = DateTime.now().month;
-      monthName = months[month - 1];
     }
     final now = DateTime.now();
     final year = month < now.month ? now.year + 1 : now.year;
+    final monthName = _monthName(month);
 
     // 3. Assign item rows to day groups. When the sheet has merged cells in
     // the label column (the usual case), each merge marks a day group's
     // exact row span — use those. Otherwise fall back to blank-row
     // boundaries.
-    final days = <int, Map<String, List<MessItem>>>{};
+    final days = <int, Map<String, List<String>>>{};
 
     void addItemsToDays(List<int> targetDays, List<int> cols, int r) {
+      final row = grid[r];
       String cellAt(int col) =>
-          col >= 0 && col < grid[r].length ? grid[r][col] : '';
-      bool specialAt(int col) =>
-          col >= 0 && col < specialGrid[r].length ? specialGrid[r][col] : false;
+          col >= 0 && col < row.length ? row[col] : '';
       for (final col in cols) {
         final value = cellAt(col);
         if (value.isEmpty) continue;
@@ -348,17 +317,11 @@ class MessMenuService {
                 : col == dinnerCol
                     ? 'dinner'
                     : 'breakfast';
-        final lower = value.toLowerCase();
-        final item = MessItem(
-          name: value,
-          special: specialAt(col),
-          nonVeg: lower.contains('non-veg') || lower.contains('nonveg'),
-        );
         for (final day in targetDays) {
           days
               .putIfAbsent(day, () => {})
               .putIfAbsent(key, () => [])
-              .add(item);
+              .add(value);
         }
       }
     }
@@ -446,5 +409,12 @@ class MessMenuService {
       ),
     );
   }
-}
 
+  static String _monthName(int month) {
+    const months = [
+      'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december',
+    ];
+    return months[month - 1];
+  }
+}

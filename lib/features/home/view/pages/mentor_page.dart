@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:vit_ap_student_app/core/common/widget/user_info_tile.dart';
 import 'package:vit_ap_student_app/core/providers/current_user.dart';
 
@@ -45,12 +46,15 @@ class _ProfilePageState extends ConsumerState<MentorPage> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const CircleAvatar(
-                      radius: 50,
-                      backgroundImage: AssetImage(
-                        'assets/images/pfp/default.png',
-                      ),
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: const Color(0xFFF2F2F2),
+                    child: Icon(
+                      Iconsax.teacher_copy,
+                      size: 34,
+                      color: Colors.grey.shade800,
                     ),
+                  ),
                     const SizedBox(height: 18),
                     Text(
                       user?.profile.target?.mentorDetails.target?.facultyName ??

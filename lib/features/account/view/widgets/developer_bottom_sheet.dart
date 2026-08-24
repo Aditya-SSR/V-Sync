@@ -152,9 +152,15 @@ class _DeveloperBottomSheetState extends State<DeveloperBottomSheet> {
 
   Widget _buildProfileImage() {
     if (_imageLoadError || _profileImageUrl == null) {
-      return const CircleAvatar(
+      return CircleAvatar(
         radius: 55,
-        backgroundImage: AssetImage('assets/images/pfp/masked.png'),
+        backgroundColor:
+            Theme.of(context).colorScheme.surfaceContainerHigh,
+        child: Icon(
+          Icons.code_rounded,
+          size: 40,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
       );
     }
 

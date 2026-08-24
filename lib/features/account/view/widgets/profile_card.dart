@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vit_ap_student_app/core/common/widget/loader.dart';
 import 'package:vit_ap_student_app/core/models/user.dart';
 import 'package:vit_ap_student_app/core/providers/current_user.dart';
-import 'package:vit_ap_student_app/core/providers/user_preferences_notifier.dart';
 import 'package:vit_ap_student_app/features/auth/view/pages/semester_selection_page.dart';
 import 'package:vit_ap_student_app/features/auth/viewmodel/semester_viewmodel.dart';
 
@@ -38,7 +37,6 @@ class _ProfileCardState extends ConsumerState<ProfileCard> {
 
   @override
   Widget build(BuildContext context) {
-    final userPrefs = ref.watch(userPreferencesProvider);
     final isLoading = ref.watch(
       semesterViewModelProvider.select((val) => val?.isLoading == true),
     );
@@ -51,7 +49,20 @@ class _ProfileCardState extends ConsumerState<ProfileCard> {
           children: [
             CircleAvatar(
               radius: 50,
-              backgroundImage: AssetImage(userPrefs.pfpPath),
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerHigh,
+              child: Text(
+                (widget.user?.profile.target?.studentName ?? '?')
+                    .trim()
+                    .substring(0, 1)
+                    .toUpperCase(),
+                style: TextStyle(
+                  fontFamily: 'Outfit',
+                  fontSize: 34,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
