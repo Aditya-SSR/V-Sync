@@ -6,7 +6,6 @@ void showMarksDetailBottomSheet(Mark course, BuildContext context) {
   double lostWeightage = 0;
 
   for (var detail in course.details) {
-    // Convert weightage_mark to double if it's a string
     totalWeightage += double.tryParse(detail.weightageMark) ?? 0;
 
     final maxMark = double.parse(detail.maxMark);
@@ -23,214 +22,257 @@ void showMarksDetailBottomSheet(Mark course, BuildContext context) {
     useSafeArea: true,
     context: context,
     builder: (context) {
-      return SingleChildScrollView(
-        child: Container(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Wrap(
+      final colorScheme = Theme.of(context).colorScheme;
+      final isDark = colorScheme.brightness == Brightness.dark;
+
+      // Soft tinted card colors that work on both monochrome themes.
+      final gainedCardColor =
+          isDark ? const Color(0xFF12291B) : const Color(0xFFE7F2EA);
+      final gainedTextColor = isDark
+          ? const Color(0xFF7FC79B)
+          : const Color(0xFF2E7D4F);
+      final lostCardColor =
+          isDark ? const Color(0xFF33161C) : const Color(0xFFF9E7EA);
+      final lostTextColor = isDark
+          ? const Color(0xFFE08A99)
+          : const Color(0xFFB3243B);
+
+      return DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.85,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) {
+          return Container(
+            padding: const EdgeInsets.fromLTRB(22, 8, 22, 20),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+            ),
+            child: SingleChildScrollView(
+              controller: scrollController,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Title
                   Text(
                     course.courseTitle,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                    style: TextStyle(
+                      fontFamily: 'Outfit',
+                      fontSize: 27,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
+                      color: colorScheme.onSurface,
+                      height: 1.15,
                     ),
                   ),
-                  const SizedBox(width: 4),
-                ],
-              ),
-              const SizedBox(height: 8),
-              SizedBox(width: MediaQuery.sizeOf(context).width),
-              const SizedBox(height: 8),
-              Text(
-                'Faculty',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              Text(
-                course.faculty,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Course Code',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              Text(
-                course.courseCode,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: Container(
-                      height: 100,
-                      width: MediaQuery.sizeOf(context).width - 231,
-                      margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.centerRight,
-                          colors: [
-                            Colors.greenAccent.shade200,
-                            Colors.greenAccent.shade400,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                            ),
-                            child: Text(
-                              totalWeightage.toStringAsFixed(1),
-                              style: TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 32,
-                                color: Theme.of(context).colorScheme.surface,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              left: 8.0,
-                              bottom: 4,
-                            ),
-                            child: Text(
-                              'Gained\nWeightage',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Theme.of(context).colorScheme.surface,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                  const SizedBox(height: 18),
+
+                  // Faculty
+                  Text(
+                    'FACULTY',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.8,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  Flexible(
-                    child: Container(
-                      height: 100,
-                      width: MediaQuery.sizeOf(context).width - 231,
-                      margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.centerRight,
-                          colors: [
-                            Colors.redAccent.shade100,
-                            Colors.redAccent.shade200,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                            ),
-                            child: Text(
-                              lostWeightage.toStringAsFixed(1),
-                              style: TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 32,
-                                color: Theme.of(context).colorScheme.surface,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              left: 8.0,
-                              bottom: 8,
-                            ),
-                            child: Text(
-                              'Lost\nWeightage',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Theme.of(context).colorScheme.surface,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                  const SizedBox(height: 3),
+                  Text(
+                    course.faculty,
+                    style: TextStyle(
+                      fontFamily: 'Outfit',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: colorScheme.onSurface,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Details:',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: course.details.length,
-                itemBuilder: (context, index) {
-                  final detail = course.details[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
+                  const SizedBox(height: 14),
+
+                  // Course code
+                  Text(
+                    'COURSE CODE',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.8,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    course.courseCode,
+                    style: TextStyle(
+                      fontFamily: 'Outfit',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Gained / Lost weightage cards
+                  Row(
                     children: [
-                      Text(
-                        detail.markTitle,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.primary,
+                      Expanded(
+                        child: _WeightageCard(
+                          label: 'GAINED\nWEIGHTAGE',
+                          value: totalWeightage.toStringAsFixed(1),
+                          cardColor: gainedCardColor,
+                          valueColor: gainedTextColor,
+                          labelColor: gainedTextColor,
                         ),
                       ),
-                      Text(
-                        '${detail.scoredMark} / ${detail.maxMark}',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _WeightageCard(
+                          label: 'LOST\nWEIGHTAGE',
+                          value: lostWeightage.toStringAsFixed(1),
+                          cardColor: lostCardColor,
+                          valueColor: lostTextColor,
+                          labelColor: lostTextColor,
                         ),
                       ),
-                      const SizedBox(height: 2),
                     ],
-                  );
-                },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Details
+                  Text(
+                    'Details',
+                    style: TextStyle(
+                      fontFamily: 'Outfit',
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: course.details.length,
+                    separatorBuilder: (context, index) => Container(
+                      height: 1,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            colorScheme.outlineVariant.withValues(alpha: 0),
+                            colorScheme.outlineVariant.withValues(alpha: 0.6),
+                            colorScheme.outlineVariant.withValues(alpha: 0),
+                          ],
+                        ),
+                      ),
+                    ),
+                    itemBuilder: (context, index) {
+                      final detail = course.details[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                detail.markTitle,
+                                style: TextStyle(
+                                  fontFamily: 'Outfit',
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                            RichText(
+                              text: TextSpan(
+                                text: detail.scoredMark,
+                                style: TextStyle(
+                                  fontFamily: 'Outfit',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: colorScheme.onSurface,
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: ' / ${detail.maxMark}',
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w400,
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       );
     },
   );
+}
+
+class _WeightageCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color cardColor;
+  final Color valueColor;
+  final Color labelColor;
+
+  const _WeightageCard({
+    required this.label,
+    required this.value,
+    required this.cardColor,
+    required this.valueColor,
+    required this.labelColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
+              height: 1.4,
+              color: labelColor.withValues(alpha: 0.75),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: TextStyle(
+              fontFamily: 'Outfit',
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
+              color: valueColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

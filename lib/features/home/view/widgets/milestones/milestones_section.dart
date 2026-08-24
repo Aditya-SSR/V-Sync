@@ -17,6 +17,7 @@ class MilestonesSection extends ConsumerStatefulWidget {
 class _MilestonesSectionState extends ConsumerState<MilestonesSection> {
   final PageController _pageController = PageController();
   Timer? _autoScrollTimer;
+  Timer? _refreshTimer;
   bool _userInteracting = false;
   int _currentPage = 0;
 
@@ -24,6 +25,10 @@ class _MilestonesSectionState extends ConsumerState<MilestonesSection> {
   void initState() {
     super.initState();
     _startAutoScroll();
+    // Rebuild every minute so the remaining days/hours stay accurate.
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() {});
+    });
   }
 
   void _startAutoScroll() {
@@ -56,6 +61,7 @@ class _MilestonesSectionState extends ConsumerState<MilestonesSection> {
   @override
   void dispose() {
     _autoScrollTimer?.cancel();
+    _refreshTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -85,7 +91,7 @@ class _MilestonesSectionState extends ConsumerState<MilestonesSection> {
           child: Row(
             children: [
               Text(
-                'Milestones',
+                'Countdowns',
                 style: Theme.of(context)
                     .textTheme
                     .titleLarge
@@ -203,7 +209,7 @@ class _EmptyHint extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Track your first milestone',
+              'Track your first countdown',
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 13,

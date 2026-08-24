@@ -15,7 +15,7 @@ class MilestoneManagePage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Manage milestones',
+          'Manage countdowns',
           style: Theme.of(context)
               .textTheme
               .headlineSmall
@@ -75,16 +75,17 @@ class MilestoneManagePage extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final milestone = milestones[index];
                 final daysLeft = milestone.daysLeft();
+                final hoursLeft = milestone.hoursLeft();
 
                 final String daysText;
-                if (daysLeft > 1) {
-                  daysText = 'In $daysLeft days';
-                } else if (daysLeft == 1) {
-                  daysText = 'Tomorrow';
-                } else if (daysLeft == 0) {
-                  daysText = 'Today';
-                } else {
+                if (milestone.isPassed()) {
                   daysText = 'Passed';
+                } else if (daysLeft >= 1) {
+                  daysText = 'In $daysLeft days';
+                } else if (hoursLeft >= 1) {
+                  daysText = 'In $hoursLeft hours';
+                } else {
+                  daysText = 'Any moment now';
                 }
 
                 return Container(
@@ -127,7 +128,7 @@ class MilestoneManagePage extends ConsumerWidget {
                             ],
                             const SizedBox(height: 4),
                             Text(
-                              '${DateFormat('d MMM yyyy').format(milestone.targetDate)}  •  $daysText',
+                              '${DateFormat('d MMM yyyy, h:mm a').format(milestone.targetDate)}  •  $daysText',
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 11.5,
@@ -178,6 +179,7 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
   final _titleController = TextEditingController();
   final _infoController = TextEditingController();
   DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
 
   @override
   void initState() {
@@ -201,8 +203,16 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
       firstDate: now,
       lastDate: now.add(const Duration(days: 365 * 3)),
     );
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() => _selectedDate = picked);
+      // Follow up with the time picker so the target moment is exact.
+      final pickedTime = await showTimePicker(
+        context: context,
+        initialTime: _selectedTime ?? const TimeOfDay(hour: 9, minute: 0),
+      );
+      if (pickedTime != null && mounted) {
+        setState(() => _selectedTime = pickedTime);
+      }
     }
   }
 
@@ -210,10 +220,19 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
     final title = _titleController.text.trim();
     if (title.isEmpty || _selectedDate == null) return;
 
+    final time = _selectedTime ?? const TimeOfDay(hour: 9, minute: 0);
+    final target = DateTime(
+      _selectedDate!.year,
+      _selectedDate!.month,
+      _selectedDate!.day,
+      time.hour,
+      time.minute,
+    );
+
     await ref.read(milestonesProvider.notifier).addMilestone(
           title: title,
           info: _infoController.text,
-          targetDate: _selectedDate!,
+          targetDate: target,
         );
     if (mounted) Navigator.of(context).pop();
   }
@@ -363,9 +382,12 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
                     const SizedBox(width: 10),
                     Text(
                       _selectedDate == null
-                          ? 'Pick a date'
-                          : DateFormat('EEEE, d MMM yyyy')
-                              .format(_selectedDate!),
+                          ? 'Pick a date & time'
+                          : DateFormat('EEEE, d MMM yyyy').format(
+                                  _selectedDate!) +
+                              (_selectedTime == null
+                                  ? ''
+                                  : ', ${_selectedTime!.format(context)}'),
                       style: TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 15,

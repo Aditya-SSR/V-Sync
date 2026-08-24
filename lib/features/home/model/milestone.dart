@@ -33,4 +33,10 @@ class Milestone {
         targetDate.year, targetDate.month, targetDate.day);
     return target.difference(today).inDays;
   }
+
+  /// Whole hours between now and the target moment (negative once passed).
+  int hoursLeft() => targetDate.difference(DateTime.now()).inHours;
+
+  /// True once the target moment is in the past.
+  bool isPassed() => targetDate.isBefore(DateTime.now());
 }

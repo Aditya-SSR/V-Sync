@@ -59,11 +59,7 @@ class MilestonesNotifier extends Notifier<List<Milestone>> {
       info: (normalizedInfo == null || normalizedInfo.isEmpty)
           ? null
           : normalizedInfo,
-      targetDate: DateTime(
-        targetDate.year,
-        targetDate.month,
-        targetDate.day,
-      ),
+      targetDate: targetDate,
     );
 
     final updated = [...state, milestone]

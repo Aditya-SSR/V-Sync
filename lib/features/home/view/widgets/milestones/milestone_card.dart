@@ -17,19 +17,25 @@ class MilestoneCard extends StatelessWidget {
     final muted = colorScheme.onSurfaceVariant;
 
     final daysLeft = milestone.daysLeft();
+    final hoursLeft = milestone.hoursLeft();
 
+    final String headerLabel;
     final String countLabel;
     final String unitLabel;
-    if (daysLeft > 1) {
+    if (daysLeft >= 1) {
+      headerLabel = 'APPROACHING IN';
       countLabel = '$daysLeft';
       unitLabel = 'days';
-    } else if (daysLeft == 1) {
-      countLabel = '1';
-      unitLabel = 'day';
-    } else if (daysLeft == 0) {
-      countLabel = 'Today';
-      unitLabel = '';
+    } else if (hoursLeft >= 1) {
+      headerLabel = 'APPROACHING IN';
+      countLabel = '$hoursLeft';
+      unitLabel = 'hours';
+    } else if (!milestone.isPassed()) {
+      headerLabel = 'APPROACHING IN';
+      countLabel = '<1';
+      unitLabel = 'hour';
     } else {
+      headerLabel = 'WRAPPED UP';
       countLabel = 'Done';
       unitLabel = '';
     }
@@ -70,7 +76,7 @@ class MilestoneCard extends StatelessWidget {
           ],
           const Spacer(),
           Text(
-            daysLeft >= 0 ? 'APPROACHING IN' : 'WRAPPED UP',
+            headerLabel,
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 10.5,

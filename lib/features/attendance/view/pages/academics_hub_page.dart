@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:vit_ap_student_app/features/attendance/view/pages/attendance_page.dart';
+import 'package:vit_ap_student_app/features/home/view/pages/exam_schedule_page.dart';
 import 'package:vit_ap_student_app/features/home/view/pages/grade_history_page.dart';
 import 'package:vit_ap_student_app/features/home/view/pages/marks_page.dart';
 
@@ -31,7 +32,6 @@ class AcademicsHubPage extends StatelessWidget {
               _HubCard(
                 icon: Iconsax.tick_circle,
                 title: 'Attendance',
-                subtitle: 'Track your class attendance',
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute<void>(
@@ -43,7 +43,6 @@ class AcademicsHubPage extends StatelessWidget {
               _HubCard(
                 icon: Iconsax.document_text,
                 title: 'Marks',
-                subtitle: 'Internal marks for every assessment',
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute<void>(
@@ -55,11 +54,21 @@ class AcademicsHubPage extends StatelessWidget {
               _HubCard(
                 icon: Iconsax.award,
                 title: 'Grades',
-                subtitle: 'Grade history and CGPA',
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute<void>(
                     builder: (builder) => const GradeHistoryPage(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _HubCard(
+                icon: Iconsax.calendar_tick,
+                title: 'Exam Schedule',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (builder) => const ExamSchedulePage(),
                   ),
                 ),
               ),
@@ -75,13 +84,11 @@ class AcademicsHubPage extends StatelessWidget {
 class _HubCard extends StatelessWidget {
   final IconData icon;
   final String title;
-  final String subtitle;
   final VoidCallback onTap;
 
   const _HubCard({
     required this.icon,
     required this.title,
-    required this.subtitle,
     required this.onTap,
   });
 
@@ -92,7 +99,7 @@ class _HubCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(18),
@@ -111,34 +118,15 @@ class _HubCard extends StatelessWidget {
             ),
             const SizedBox(width: 14),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontFamily: 'Outfit',
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 12.5,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontFamily: 'Outfit',
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
               ),
-            ),
-            Icon(
-              Icons.arrow_forward_rounded,
-              size: 20,
-              color: colorScheme.onSurfaceVariant,
             ),
           ],
         ),

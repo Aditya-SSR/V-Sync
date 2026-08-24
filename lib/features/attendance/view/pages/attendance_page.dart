@@ -99,115 +99,102 @@ class AttendancePageState extends ConsumerState<AttendancePage>
     });
 
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: false,
-        automaticallyImplyLeading: true,
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Attendance',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            if (lastSynced != null)
-              Text(
-                'Last synced ${timeago.format(lastSynced!)}',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(fontSize: 13),
-              ),
-          ],
-        ),
-      ),
-      body: isLoading
-          ? const Loader()
-          : RefreshIndicator(
-              onRefresh: () => refreshAttendanceData(),
-              notificationPredicate: (notification) => notification.depth == 1,
-              child: Column(
-                children: [
-                  const SizedBox(height: 8),
-                  // Capsule segmented control for Theory / Lab.
-                  AnimatedBuilder(
-                    animation: _tabController,
-                    builder: (context, _) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerLow,
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: colorScheme.outlineVariant,
-                              width: 0.75,
+      body: SafeArea(
+        bottom: false,
+        child: isLoading
+            ? const Loader()
+            : RefreshIndicator(
+                onRefresh: () => refreshAttendanceData(),
+                notificationPredicate: (notification) => notification.depth == 1,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 12),
+                    // Last synced, centered above the switcher.
+                    if (lastSynced != null)
+                      Text(
+                        'Last synced ${timeago.format(lastSynced!)}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 13,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    const SizedBox(height: 12),
+                    // Capsule segmented control for Theory / Lab.
+                    AnimatedBuilder(
+                      animation: _tabController,
+                      builder: (context, _) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(30),
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              for (var i = 0; i < 2; i++)
-                                Expanded(
-                                  child: GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: () =>
-                                        _tabController.animateTo(i),
-                                    child: AnimatedContainer(
-                                      duration:
-                                          const Duration(milliseconds: 200),
-                                      curve: Curves.easeOutCubic,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 10,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: _tabController.index == i
-                                            ? colorScheme.primary
-                                            : Colors.transparent,
-                                        borderRadius:
-                                            BorderRadius.circular(30),
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          i == 0 ? 'Theory' : 'Lab',
-                                          style: TextStyle(
-                                            fontFamily: 'Outfit',
-                                            fontSize: 14,
-                                            fontWeight:
-                                                _tabController.index == i
-                                                    ? FontWeight.w600
-                                                    : FontWeight.w500,
-                                            color: _tabController.index == i
-                                                ? colorScheme.onPrimary
-                                                : colorScheme
-                                                    .onSurfaceVariant,
+                            child: Row(
+                              children: [
+                                for (var i = 0; i < 2; i++)
+                                  Expanded(
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () =>
+                                          _tabController.animateTo(i),
+                                      child: AnimatedContainer(
+                                        duration:
+                                            const Duration(milliseconds: 200),
+                                        curve: Curves.easeOutCubic,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 11,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _tabController.index == i
+                                              ? colorScheme.primary
+                                              : Colors.transparent,
+                                          borderRadius:
+                                              BorderRadius.circular(30),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            i == 0 ? 'Theory' : 'Lab',
+                                            style: TextStyle(
+                                              fontFamily: 'Outfit',
+                                              fontSize: 14.5,
+                                              fontWeight:
+                                                  _tabController.index == i
+                                                      ? FontWeight.w600
+                                                      : FontWeight.w500,
+                                              color: _tabController.index == i
+                                                  ? colorScheme.onPrimary
+                                                  : colorScheme
+                                                      .onSurfaceVariant,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildBody(user, 'Theory'),
-                        _buildBody(user, 'Lab'),
-                      ],
+                        );
+                      },
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildBody(user, 'Theory'),
+                          _buildBody(user, 'Lab'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 

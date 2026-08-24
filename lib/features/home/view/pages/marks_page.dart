@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:vit_ap_student_app/core/common/widget/empty_content_view.dart';
 import 'package:vit_ap_student_app/core/common/widget/error_content_view.dart';
@@ -101,63 +100,111 @@ class _MarksPageState extends ConsumerState<MarksPage>
       _initTabController(categories);
     }
 
+    final hasTabs = _tabController != null && _courseCategories.isNotEmpty;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: false,
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Marks',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w500),
-            ),
-            if (lastSynced != null)
-              Text(
-                'Last synced ${timeago.format(lastSynced!)}',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(fontSize: 13),
+      body: SafeArea(
+        bottom: false,
+        child: isLoading
+            ? const Loader()
+            : RefreshIndicator(
+                onRefresh: refreshMarksData,
+                notificationPredicate: (notification) => notification.depth == 1,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 12),
+                    if (lastSynced != null)
+                      Text(
+                        'Last synced ${timeago.format(lastSynced!)}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 13,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    const SizedBox(height: 12),
+                    if (hasTabs)
+                      AnimatedBuilder(
+                        animation: _tabController!,
+                        builder: (context, _) {
+                          return Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerLow,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Row(
+                                children: [
+                                  for (var i = 0;
+                                      i < _courseCategories.length;
+                                      i++)
+                                    Expanded(
+                                      child: GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onTap: () =>
+                                            _tabController!.animateTo(i),
+                                        child: AnimatedContainer(
+                                          duration: const Duration(
+                                              milliseconds: 200),
+                                          curve: Curves.easeOutCubic,
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 11,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: _tabController!.index == i
+                                                ? colorScheme.primary
+                                                : Colors.transparent,
+                                            borderRadius:
+                                                BorderRadius.circular(30),
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              _courseCategories[i],
+                                              style: TextStyle(
+                                                fontFamily: 'Outfit',
+                                                fontSize: 14.5,
+                                                fontWeight: _tabController!
+                                                        .index ==
+                                                    i
+                                                    ? FontWeight.w600
+                                                    : FontWeight.w500,
+                                                color: _tabController!.index ==
+                                                        i
+                                                    ? colorScheme.onPrimary
+                                                    : colorScheme
+                                                        .onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: hasTabs
+                          ? TabBarView(
+                              controller: _tabController,
+                              children: _courseCategories
+                                  .map((category) => _buildBody(user, category))
+                                  .toList(),
+                            )
+                          : _buildBody(user, ''),
+                    ),
+                  ],
+                ),
               ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Iconsax.refresh_copy,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            onPressed: () {
-              refreshMarksData();
-            },
-            tooltip: 'Refresh',
-          ),
-        ],
-        bottom: _tabController != null && _courseCategories.isNotEmpty
-            ? DynamicCourseTypeTabBar(
-                controller: _tabController!,
-                courseTypes: _courseCategories,
-              )
-            : null,
       ),
-      body: isLoading
-          ? const Loader()
-          : RefreshIndicator(
-              onRefresh: refreshMarksData,
-              notificationPredicate: (notification) => notification.depth == 1,
-              child: _tabController != null && _courseCategories.isNotEmpty
-                  ? TabBarView(
-                      controller: _tabController,
-                      children: _courseCategories
-                          .map((category) => _buildBody(user, category))
-                          .toList(),
-                    )
-                  : _buildBody(user, ''),
-            ),
     );
   }
 
@@ -197,77 +244,71 @@ class _MarksPageState extends ConsumerState<MarksPage>
         }
 
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
-          child: ListTile(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
+          child: GestureDetector(
+            onTap: () {
+              showMarksDetailBottomSheet(course, context);
+            },
+            child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                width: 0.75,
+              ),
             ),
-            tileColor: Theme.of(context).colorScheme.surfaceContainerLow,
-            title: Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
                   course.courseTitle,
                   style: TextStyle(
+                    fontFamily: 'Outfit',
                     color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
+                    height: 1.25,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Text(
                   course.faculty,
                   style: TextStyle(
                     fontFamily: 'Inter',
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w400,
-                    fontSize: 12.5,
+                    fontSize: 13,
                   ),
                 ),
-                Text(
-                  course.courseCode,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12.5,
-                  ),
-                ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 RichText(
                   text: TextSpan(
                     text: totalWeightage.toStringAsFixed(0),
                     style: TextStyle(
+                      fontFamily: 'Outfit',
                       color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 30,
                       fontWeight: FontWeight.w700,
                     ),
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: ' / ',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      TextSpan(
-                        text: maxWeightage.toStringAsFixed(0),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                     children: <TextSpan>[
+                       TextSpan(
+                         text: ' / ${maxWeightage.toStringAsFixed(0)}',
+                         style: TextStyle(
+                           fontFamily: 'Inter',
+                           color: Theme.of(context).colorScheme.onSurfaceVariant,
+                           fontSize: 16,
+                           fontWeight: FontWeight.w400,
+                         ),
+                       ),
+                     ],
+                   ),
+                 ),
+               ],
+             ),
             ),
-            onTap: () {
-              showMarksDetailBottomSheet(course, context);
-            },
           ),
         );
       },

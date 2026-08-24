@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:vit_ap_student_app/core/models/grade_history.dart';
 
 class GradeCard extends StatelessWidget {
@@ -9,186 +10,167 @@ class GradeCard extends StatelessWidget {
     required this.course,
   });
 
+  /// Monochrome-friendly grade hierarchy: greens at the top, warm tones
+  /// in the middle, red at the bottom.
+  static (Color, Color) _gradeColors(String grade) {
+    switch (grade.trim().toUpperCase()) {
+      case 'S':
+        return (const Color(0xFFBFE6C8), const Color(0xFF1B5E20)); // light green
+      case 'A':
+        return (const Color(0xFF2E7D32), Colors.white); // dark green
+      case 'B':
+        return (const Color(0xFF66BB6A), Colors.white); // medium green
+      case 'C':
+        return (const Color(0xFFAFB42B), Colors.white); // olive / lime
+      case 'D':
+        return (const Color(0xFFF9A825), Colors.white); // amber
+      case 'E':
+        return (const Color(0xFFEF6C00), Colors.white); // orange
+      case 'F':
+        return (const Color(0xFFC62828), Colors.white); // red
+      default:
+        return (const Color(0xFF212121), Colors.white);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).colorScheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
+    final colorScheme = Theme.of(context).colorScheme;
+    final (badgeColor, badgeTextColor) = _gradeColors(course.grade);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: colorScheme.outlineVariant, width: 0.75),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with grade and course type icon
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Grade badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    course.grade,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Course title
-            Text(
-              course.courseTitle,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-
-            // Course code
-            Text(
-              course.courseCode,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Course details row
-            Row(
-              children: [
-                _InfoChip(
-                  icon: Icons.credit_score,
-                  label: 'Credits',
-                  value: course.credits,
-                  context: context,
-                ),
-                const SizedBox(width: 12),
-                _InfoChip(
-                  icon: Icons.calendar_month,
-                  label: 'Exam',
-                  value: course.examMonth,
-                  context: context,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Course distribution (if available and not empty)
-            if (course.courseDistribution.trim().isNotEmpty)
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Grade badge
               Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(8),
+                width: 52,
+                height: 52,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
+                  color: badgeColor,
+                  shape: BoxShape.circle,
                 ),
+                child: Text(
+                  course.grade,
+                  style: TextStyle(
+                    fontFamily: 'Outfit',
+                    color: badgeTextColor,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Course Type',
+                      course.courseTitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Outfit',
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15.5,
+                        height: 1.25,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
-                      course.courseDistribution,
+                      course.courseCode,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
+                        fontFamily: 'Inter',
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w400,
                         fontSize: 13,
-                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final BuildContext context;
-
-  const _InfoChip({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.context,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    value,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Divider
+          Container(
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  colorScheme.outlineVariant.withValues(alpha: 0),
+                  colorScheme.outlineVariant.withValues(alpha: 0.6),
+                  colorScheme.outlineVariant.withValues(alpha: 0),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 10),
+          // Meta row: credits, exam month, course type
+          Row(
+            children: [
+              Icon(
+                Iconsax.book_copy,
+                size: 14,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 5),
+              Text(
+                '${course.credits} Credits',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 12.5,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Icon(
+                Iconsax.calendar_copy,
+                size: 14,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 5),
+              Text(
+                course.examMonth,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 12.5,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Icon(
+                Iconsax.medal_star_copy,
+                size: 14,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  course.courseType,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12.5,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
