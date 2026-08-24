@@ -1,43 +1,47 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 
 class EmptyContentView extends StatelessWidget {
   final String primaryText;
   final String secondaryText;
-  const EmptyContentView(
-      {super.key, required this.primaryText, required this.secondaryText});
+
+  const EmptyContentView({
+    super.key,
+    required this.primaryText,
+    required this.secondaryText,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(25.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Center(
-            child: Lottie.asset(
-              'assets/lottie/empty.json',
-              frameRate: const FrameRate(60),
-              width: 275,
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              primaryText,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Outfit',
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
+              ),
             ),
-          ),
-          Text(
-            primaryText,
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(context).colorScheme.onSurface,
+            const SizedBox(height: 6),
+            Text(
+              secondaryText,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 13,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
-          ),
-          Text(
-            secondaryText,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

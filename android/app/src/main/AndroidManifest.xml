@@ -21,7 +21,7 @@
     <application
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:label="VITAP Student"
+        android:label="VSync"
         android:networkSecurityConfig="@xml/network"
         android:enableOnBackInvokedCallback="true">
 

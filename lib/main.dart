@@ -102,7 +102,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       themeAnimationCurve: Curves.easeInOut,
       debugShowCheckedModeBanner: false,
       theme: themeMode,
-      title: 'VITAP Student',
+      title: 'V Sync',
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(

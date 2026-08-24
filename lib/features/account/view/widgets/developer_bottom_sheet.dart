@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 import 'package:vit_ap_student_app/core/common/widget/loader.dart';
 import 'package:vit_ap_student_app/core/utils/launch_web.dart';
 
@@ -71,12 +70,12 @@ class _DeveloperBottomSheetState extends State<DeveloperBottomSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Lottie.asset(
-                  'assets/lottie/smile.json',
-                  frameRate: const FrameRate(60),
-                  width: 45,
-                  repeat: true,
+                Icon(
+                  Icons.code_rounded,
+                  size: 24,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
+                const SizedBox(width: 6),
                 Text(
                   'Developer',
                   style: TextStyle(
@@ -112,16 +111,6 @@ class _DeveloperBottomSheetState extends State<DeveloperBottomSheet> {
                           Positioned(
                             bottom: 10,
                             child: _buildProfileImage(),
-                          ),
-                          Positioned(
-                            top: -15,
-                            right: 0,
-                            child: Lottie.asset(
-                              'assets/lottie/wave.json',
-                              frameRate: const FrameRate(60),
-                              width: 80,
-                              repeat: false,
-                            ),
                           ),
                         ],
                       ),

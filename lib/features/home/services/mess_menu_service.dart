@@ -115,8 +115,8 @@ class MessMenuService {
       final sheetFile = findFile(target);
       if (sheetFile == null) continue;
       try {
-        final grid = _readSheetGrid(utf8.decode(sheetFile.content), sharedStrings);
-        final menu = _menuFromGrid(grid);
+        final sheet = _readSheet(utf8.decode(sheetFile.content), sharedStrings);
+        final menu = _menuFromGrid(sheet.grid, sheet.dayBlockRanges);
         if (menu != null) return menu;
       } catch (e) {
         lastError = e;
@@ -126,8 +126,11 @@ class MessMenuService {
         'Could not find a mess menu table in this file. $lastError');
   }
 
-  /// Reads a worksheet into a grid of strings indexed [row][col].
-  static List<List<String>> _readSheetGrid(String xml, List<String> sharedStrings) {
+  /// Reads a worksheet into a grid of strings indexed [row][col], and
+  /// collects the merged ranges of column A (the day-label column), which
+  /// mark the exact row span of each day group.
+  static ({List<List<String>> grid, List<(int, int)> dayBlockRanges})
+      _readSheet(String xml, List<String> sharedStrings) {
     final doc = XmlDocument.parse(xml);
     final grid = <List<String>>[];
 
@@ -173,7 +176,24 @@ class MessMenuService {
         cells[col] = value.trim();
       }
     }
-    return grid;
+
+    // Merged ranges of column A: "A4:A16" -> (3, 15). Each range is one
+    // day group's exact row span.
+    final dayBlockRanges = <(int, int)>[];
+    for (final merge in doc.findAllElements('mergeCell', namespaceUri: '*')) {
+      final ref = merge.getAttribute('ref', namespaceUri: '*') ?? '';
+      if (!ref.toUpperCase().startsWith('A')) continue;
+      final parts = ref.split(':');
+      if (parts.length != 2) continue;
+      final r1 = int.tryParse(parts[0].replaceAll(RegExp(r'[^0-9]'), ''));
+      final r2 = int.tryParse(parts[1].replaceAll(RegExp(r'[^0-9]'), ''));
+      if (r1 != null && r2 != null && r2 > r1) {
+        dayBlockRanges.add((r1 - 1, r2 - 1));
+      }
+    }
+    dayBlockRanges.sort((a, b) => a.$1.compareTo(b.$1));
+
+    return (grid: grid, dayBlockRanges: dayBlockRanges);
   }
 
   /// Converts a cell reference like "BC12" into a zero-based column index.
@@ -188,7 +208,10 @@ class MessMenuService {
 
   /// Builds the [MessMenu] from a raw grid, or null when the grid doesn't
   /// look like a mess menu.
-  static MessMenu? _menuFromGrid(List<List<String>> grid) {
+  static MessMenu? _menuFromGrid(
+    List<List<String>> grid,
+    List<(int, int)> dayBlockRanges,
+  ) {
     // 1. Locate the header row (contains "Breakfast").
     var headerRow = -1;
     var breakfastCol = -1, lunchCol = -1, snacksCol = -1, dinnerCol = -1;
@@ -229,61 +252,97 @@ class MessMenuService {
     final now = DateTime.now();
     final year = month < now.month ? now.year + 1 : now.year;
 
-    // 3. Walk the rows, grouping item blocks per day label.
+    // 3. Assign item rows to day groups. When the sheet has merged cells in
+    // the label column (the usual case), each merge marks a day group's
+    // exact row span — use those. Otherwise fall back to blank-row
+    // boundaries.
     final days = <int, Map<String, List<String>>>{};
-    var currentDays = <int>[];
-    var prevRowHadItems = false;
 
-    void addItem(int col, String value) {
-      if (value.isEmpty || currentDays.isEmpty) return;
-      final key = col == lunchCol
-          ? 'lunch'
-          : col == snacksCol
-              ? 'snacks'
-              : col == dinnerCol
-                  ? 'dinner'
-                  : 'breakfast';
-      for (final day in currentDays) {
-        days.putIfAbsent(day, () => {}).putIfAbsent(key, () => []).add(value);
+    void addItemsToDays(List<int> targetDays, List<int> cols, int r) {
+      final row = grid[r];
+      String cellAt(int col) =>
+          col >= 0 && col < row.length ? row[col] : '';
+      for (final col in cols) {
+        final value = cellAt(col);
+        if (value.isEmpty) continue;
+        final key = col == lunchCol
+            ? 'lunch'
+            : col == snacksCol
+                ? 'snacks'
+                : col == dinnerCol
+                    ? 'dinner'
+                    : 'breakfast';
+        for (final day in targetDays) {
+          days
+              .putIfAbsent(day, () => {})
+              .putIfAbsent(key, () => [])
+              .add(value);
+        }
       }
     }
 
-    for (var r = headerRow + 1; r < grid.length; r++) {
-      final row = r < grid.length ? grid[r] : <String>[];
-      String cellAt(int col) =>
-          col >= 0 && col < row.length ? row[col] : '';
+    final mealCols = [breakfastCol, lunchCol, snacksCol, dinnerCol];
 
-      final hasItems = [breakfastCol, lunchCol, snacksCol, dinnerCol]
-          .any((col) => cellAt(col).isNotEmpty);
-
-      if (!hasItems) {
-        prevRowHadItems = false;
-        continue;
-      }
-
-      if (!prevRowHadItems) {
-        // New day group: pull day numbers from the label column around
-        // this row (labels like "Sat" / "1, 15, 29" span merged cells).
+    if (dayBlockRanges.isNotEmpty) {
+      for (final (start, end) in dayBlockRanges) {
+        if (end <= headerRow) continue;
+        // Day numbers live in the label text ("Mon" / "10, 24" — possibly
+        // multiline within the merged cell).
         final labelBuffer = StringBuffer();
-        for (var lr = r; lr <= r + 3 && lr < grid.length; lr++) {
-          final labelRow = grid[lr];
-          // Assume the label column sits left of the breakfast column.
+        for (var r = start; r <= end && r < grid.length; r++) {
+          final row = grid[r];
           for (var c = 0; c < (breakfastCol > 0 ? breakfastCol : 1); c++) {
-            if (c < labelRow.length) labelBuffer.write('${labelRow[c]} ');
+            if (c < row.length) labelBuffer.write('${row[c]} ');
           }
         }
-        final numbers = RegExp(r'\d+')
+        final dayNumbers = RegExp(r'\d+')
             .allMatches(labelBuffer.toString())
             .map((m) => int.parse(m.group(0)!))
             .where((n) => n >= 1 && n <= 31)
             .toList();
-        currentDays = numbers;
-      }
+        if (dayNumbers.isEmpty) continue;
 
-      for (final col in [breakfastCol, lunchCol, snacksCol, dinnerCol]) {
-        addItem(col, cellAt(col));
+        for (var r = start; r <= end && r < grid.length; r++) {
+          if (r <= headerRow) continue;
+          addItemsToDays(dayNumbers, mealCols, r);
+        }
       }
-      prevRowHadItems = true;
+    } else {
+      // Fallback: blank rows separate day groups.
+      var currentDays = <int>[];
+      var prevRowHadItems = false;
+
+      for (var r = headerRow + 1; r < grid.length; r++) {
+        final row = grid[r];
+        String cellAt(int col) =>
+            col >= 0 && col < row.length ? row[col] : '';
+
+        final hasItems = mealCols.any((col) => cellAt(col).isNotEmpty);
+        if (!hasItems) {
+          prevRowHadItems = false;
+          continue;
+        }
+
+        if (!prevRowHadItems) {
+          final labelBuffer = StringBuffer();
+          for (var lr = r; lr <= r + 3 && lr < grid.length; lr++) {
+            final labelRow = grid[lr];
+            for (var c = 0; c < (breakfastCol > 0 ? breakfastCol : 1); c++) {
+              if (c < labelRow.length) {
+                labelBuffer.write('${labelRow[c]} ');
+              }
+            }
+          }
+          currentDays = RegExp(r'\d+')
+              .allMatches(labelBuffer.toString())
+              .map((m) => int.parse(m.group(0)!))
+              .where((n) => n >= 1 && n <= 31)
+              .toList();
+        }
+
+        addItemsToDays(currentDays, mealCols, r);
+        prevRowHadItems = true;
+      }
     }
 
     if (days.isEmpty) return null;

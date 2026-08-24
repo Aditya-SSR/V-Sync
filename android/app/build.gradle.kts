@@ -3,7 +3,6 @@ import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
-    id("com.google.gms.google-services")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
 }
@@ -36,7 +35,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.udhay.vitapstudentapp"
+        applicationId = "com.vitapstudent"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
         compileSdk = 36

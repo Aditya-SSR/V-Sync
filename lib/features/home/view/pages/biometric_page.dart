@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
 import 'package:vit_ap_student_app/core/common/widget/empty_content_view.dart';
 import 'package:vit_ap_student_app/core/common/widget/error_content_view.dart';
+import 'package:vit_ap_student_app/core/common/widget/loader.dart';
 import 'package:vit_ap_student_app/core/utils/show_snackbar.dart';
 import 'package:vit_ap_student_app/features/home/model/biometric.dart';
 import 'package:vit_ap_student_app/features/home/viewmodel/biometric_viewmodel.dart';
@@ -170,11 +170,8 @@ class _BiometricPageState extends ConsumerState<BiometricPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Lottie.asset(
-                      'assets/lottie/loading_files.json',
-                      frameRate: const FrameRate(60),
-                      height: 100,
-                    ),
+                    const Loader(),
+                    const SizedBox(height: 16),
                     Text(
                       'Fetching biometric log..',
                       style: TextStyle(

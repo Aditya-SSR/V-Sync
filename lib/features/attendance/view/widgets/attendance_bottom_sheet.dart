@@ -5,7 +5,6 @@ import 'package:vit_ap_student_app/core/common/widget/loader.dart';
 import 'package:vit_ap_student_app/core/models/attendance.dart';
 import 'package:vit_ap_student_app/features/attendance/model/attendance_detail.dart';
 import 'package:vit_ap_student_app/features/attendance/viewmodel/detailed_attendance_viewmodel.dart';
-import 'package:vit_ap_student_app/init_dependencies.dart';
 
 void showAttendanceBottomSheet(BuildContext context, Attendance subjectInfo) {
   showModalBottomSheet<dynamic>(

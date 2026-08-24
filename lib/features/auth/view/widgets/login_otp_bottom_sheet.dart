@@ -162,10 +162,20 @@ class _LoginOtpSheetState extends ConsumerState<_LoginOtpSheet>
       );
     });
 
-    final defaultPinTheme = const PinTheme(
-      width: 60,
-      height: 64,
-      textStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+    final defaultPinTheme = PinTheme(
+      width: 46,
+      height: 56,
+      textStyle: TextStyle(
+        fontFamily: 'Outfit',
+        fontSize: 22,
+        fontWeight: FontWeight.w600,
+        color: theme.colorScheme.onSurface,
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
     );
 
     return PopScope(
@@ -185,114 +195,106 @@ class _LoginOtpSheetState extends ConsumerState<_LoginOtpSheet>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'OTP Verification',
+              'Verification',
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'An OTP has been sent to your registered email. '
-              'Please enter it below to continue.',
-              style: theme.textTheme.bodyMedium,
+              'Enter the OTP sent to your registered email to continue.',
+              style: theme.textTheme.bodySmall?.copyWith(fontSize: 13.5),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             if (_resendSuccess) ...[
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
-                  vertical: 8,
+                  vertical: 9,
                 ),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryFixedDim,
-                  borderRadius: BorderRadius.circular(8),
+                  color: theme.colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
                 ),
                 child: Row(
                   children: [
                     Icon(
-                      Icons.check_circle_outline,
-                      size: 18,
-                      color: theme.colorScheme.onPrimaryContainer,
+                      Icons.check_circle_outline_rounded,
+                      size: 17,
+                      color: Colors.green,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'OTP resent to your email',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onPrimaryContainer,
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 12.5,
                           fontWeight: FontWeight.w500,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
             ],
             Center(
-              child: Container(
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Pinput(
-                  controller: _pinController,
-                  focusNode: _focusNode,
-                  length: 6,
-                  autofocus: true,
-                  enabled: !isLoading,
-                  forceErrorState: _errorMessage != null,
-                  errorText: _errorMessage,
-                  defaultPinTheme: defaultPinTheme,
-                  errorBuilder: (errorText, pin) {
-                    if (errorText == null || errorText.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
-                    return Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerLow,
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Text(
-                                errorText,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.error,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                  separatorBuilder: (index) => Container(
-                    height: 64,
-                    width: 1,
-                    color: theme.colorScheme.surface,
-                  ),
-                  focusedPinTheme: defaultPinTheme.copyWith(
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.secondaryContainer,
+              child: Pinput(
+                controller: _pinController,
+                focusNode: _focusNode,
+                length: 6,
+                autofocus: true,
+                enabled: !isLoading,
+                forceErrorState: _errorMessage != null,
+                errorText: _errorMessage,
+                defaultPinTheme: defaultPinTheme,
+                errorBuilder: (errorText, pin) {
+                  if (errorText == null || errorText.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text(
+                      errorText,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.red,
+                      ),
                     ),
+                  );
+                },
+                separatorBuilder: (index) => const SizedBox(width: 6),
+                focusedPinTheme: defaultPinTheme.copyWith(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: theme.colorScheme.primary),
                   ),
-                  errorPinTheme: defaultPinTheme.copyWith(
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainer,
-                    ),
+                  textStyle: TextStyle(
+                    fontFamily: 'Outfit',
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onPrimary,
                   ),
-                  onChanged: (_) {
-                    if (_errorMessage != null) {
-                      setState(() => _errorMessage = null);
-                    }
-                  },
                 ),
+                errorPinTheme: defaultPinTheme.copyWith(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.red, width: 1.2),
+                  ),
+                ),
+                onChanged: (_) {
+                  if (_errorMessage != null) {
+                    setState(() => _errorMessage = null);
+                  }
+                },
               ),
             ),
             const SizedBox(height: 24),
@@ -302,33 +304,58 @@ class _LoginOtpSheetState extends ConsumerState<_LoginOtpSheet>
                   child: OutlinedButton(
                     onPressed: (isLoading || isOnCooldown) ? null : _resend,
                     style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.colorScheme.onSurface,
                       minimumSize: const Size.fromHeight(48),
+                      side: BorderSide(
+                        color: theme.colorScheme.outlineVariant,
+                      ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(9),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
                     child: Text(
                       isOnCooldown
-                          ? 'Resend OTP (${_remainingSeconds}s)'
+                          ? 'Resend (${_remainingSeconds}s)'
                           : 'Resend OTP',
+                      style: TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton(
+                  child: FilledButton(
                     onPressed: isLoading ? null : _submit,
-                    style: ElevatedButton.styleFrom(
+                    style: FilledButton.styleFrom(
                       elevation: 0,
-                      backgroundColor: theme.colorScheme.secondaryContainer,
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
+                      disabledBackgroundColor:
+                          theme.colorScheme.surfaceContainerHigh,
+                      disabledForegroundColor:
+                          theme.colorScheme.onSurfaceVariant,
                       minimumSize: const Size.fromHeight(48),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(9),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
                     child: isLoading
-                        ? const SizedBox(width: 24, height: 24, child: Loader())
-                        : const Text('Verify'),
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: Loader(),
+                          )
+                        : const Text(
+                            'Verify',
+                            style: TextStyle(
+                              fontFamily: 'Outfit',
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                   ),
                 ),
               ],
@@ -337,7 +364,14 @@ class _LoginOtpSheetState extends ConsumerState<_LoginOtpSheet>
             Center(
               child: TextButton(
                 onPressed: isLoading ? null : _cancel,
-                child: const Text('Cancel'),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 13,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 8),

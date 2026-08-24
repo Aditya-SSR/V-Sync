@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 
 class ErrorContentView extends StatelessWidget {
   final String error;
@@ -7,39 +6,36 @@ class ErrorContentView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Lottie.asset(
-              'assets/lottie/404_astronaut.json',
-              frameRate: const FrameRate(60),
-              width: MediaQuery.sizeOf(context).width / 1.5,
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Something went wrong',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Outfit',
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
+              ),
             ),
-          ),
-          const SizedBox(
-            height: 24,
-          ),
-          Column(
-            children: [
-              const Text(
-                'Oops!',
-                style: TextStyle(fontSize: 32),
+            const SizedBox(height: 8),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 13,
+                color: colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(
-                height: 12,
-              ),
-              Text(
-                textAlign: TextAlign.center,
-                error,
-                style: const TextStyle(fontSize: 14),
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
