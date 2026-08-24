@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vit_ap_student_app/core/common/widget/bottom_navigation_bar.dart';
 import 'package:vit_ap_student_app/core/common/widget/loader.dart';
 import 'package:vit_ap_student_app/core/utils/show_snackbar.dart';
-import 'package:vit_ap_student_app/core/utils/theme_switch_button.dart';
 import 'package:vit_ap_student_app/features/auth/viewmodel/auth_viewmodel.dart';
 import 'package:vit_ap_student_app/features/auth/viewmodel/semester_viewmodel.dart';
 import 'package:vit_ap_student_app/src/rust/api/vtop/types/semester.dart';
@@ -99,6 +98,7 @@ class _SemesterSelectionPageState extends ConsumerState<SemesterSelectionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final semesterState = ref.watch(semesterViewModelProvider);
     final isAuthLoading = ref.watch(
       authViewModelProvider.select((val) => val?.isLoading == true),
@@ -131,168 +131,215 @@ class _SemesterSelectionPageState extends ConsumerState<SemesterSelectionPage> {
     });
 
     return Scaffold(
-      appBar: AppBar(actions: const [ThemeSwitchButton()]),
-      body: semesterState == null || semesterState.isLoading
-          ? const Center(child: Loader())
-          : semesterState.when(
-              data: (semesters) {
-                if (semesters.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'No semesters available. Please try again later.',
-                    ),
-                  );
-                }
+      body: SafeArea(
+        child: semesterState == null || semesterState.isLoading
+            ? const Center(child: Loader())
+            : semesterState.when(
+                data: (semesters) {
+                  if (semesters.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No semesters available. Please try again later.',
+                      ),
+                    );
+                  }
 
-                return Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
+                  return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Select your semester',
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 48, 24, 0),
+                        child: Text(
+                          'pick your semester',
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 34,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.5,
+                            color: colorScheme.onSurface,
+                            height: 1.1,
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'This helps us fetch your academic data correctly. You can also change this anytime in the settings.',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        child: Text(
+                          'this helps vsync fetch the right academic data. '
+                          'you can change it later anytime.',
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w500,
+                            height: 1.45,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 24),
+                      if (inlineError != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24.0,
+                          ),
+                          child: Text(
+                            inlineError!,
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
                       Expanded(
-                        child: ListView.builder(
+                        child: ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
                           itemCount: semesters.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 8),
                           itemBuilder: (context, index) {
                             final semester = semesters[index];
                             final isSelected = selectedSemester == semester;
 
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 4.0,
-                              ),
-                              child: ListTile(
-                                tileColor: Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerLow,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 12,
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedSemester = semester;
+                                  inlineError = null;
+                                });
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                curve: Curves.easeOutCubic,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 15,
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadiusGeometry.circular(
-                                    9,
-                                  ),
-                                  side: BorderSide(
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? colorScheme.primary
+                                      : colorScheme.surfaceContainerLow,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
                                     color: isSelected
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(
-                                            context,
-                                          ).colorScheme.surfaceContainer,
+                                        ? colorScheme.primary
+                                        : colorScheme.outlineVariant,
+                                    width: 0.75,
                                   ),
                                 ),
-                                leading: Radio<SemesterInfo>(
-                                  value: semester,
-                                  groupValue: selectedSemester,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      selectedSemester = value;
-                                      inlineError = null;
-                                    });
-                                  },
-                                  activeColor: Theme.of(
-                                    context,
-                                  ).colorScheme.primary,
-                                ),
-                                title: Text(
-                                  semester.name,
-                                  style: Theme.of(context).textTheme.bodyLarge
-                                      ?.copyWith(
-                                        fontWeight: isSelected
-                                            ? FontWeight.bold
-                                            : null,
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        semester.name,
+                                        style: TextStyle(
+                                          fontFamily: 'Outfit',
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                          color: isSelected
+                                              ? colorScheme.onPrimary
+                                              : colorScheme.onSurface,
+                                        ),
                                       ),
+                                    ),
+                                    if (semester.id == currentSemesterId)
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 8),
+                                        child: Text(
+                                          'current',
+                                          style: TextStyle(
+                                            fontFamily: 'Inter',
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w500,
+                                            color: isSelected
+                                                ? colorScheme.onPrimary
+                                                    .withValues(alpha: 0.7)
+                                                : colorScheme
+                                                    .onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ),
+                                    if (isSelected) ...[
+                                      const SizedBox(width: 8),
+                                      Icon(
+                                        Icons.check_rounded,
+                                        size: 18,
+                                        color: colorScheme.onPrimary,
+                                      ),
+                                    ],
+                                  ],
                                 ),
-                                onTap: () {
-                                  setState(() {
-                                    selectedSemester = semester;
-                                    inlineError = null;
-                                  });
-                                },
                               ),
                             );
                           },
                         ),
                       ),
-                      if (inlineError != null) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          inlineError!,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size(double.infinity, 60),
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary,
-                            foregroundColor: Theme.of(
-                              context,
-                            ).colorScheme.onPrimary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: FilledButton(
+                            onPressed:
+                                isAuthLoading ? null : _loginUser,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: colorScheme.primary,
+                              foregroundColor: colorScheme.onPrimary,
+                              disabledBackgroundColor:
+                                  colorScheme.surfaceContainerHigh,
+                              disabledForegroundColor:
+                                  colorScheme.onSurfaceVariant,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
                             ),
+                            child: isAuthLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: Loader(),
+                                  )
+                                : const Text(
+                                    'continue',
+                                    style: TextStyle(
+                                      fontFamily: 'Outfit',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                           ),
-                          onPressed: isAuthLoading ? null : _loginUser,
-                          child: isAuthLoading
-                              ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: Loader(),
-                                )
-                              : const Text(
-                                  'Continue',
-                                  style: TextStyle(fontSize: 16),
-                                ),
                         ),
                       ),
+                    ],
+                  );
+                },
+                error: (error, _) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Failed to load semesters',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        error.toString(),
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                       const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _initializePage,
+                        child: const Text('Retry'),
+                      ),
                     ],
                   ),
-                );
-              },
-              error: (error, _) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Failed to load semesters',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      error.toString(),
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _initializePage,
-                      child: const Text('Retry'),
-                    ),
-                  ],
                 ),
+                loading: () => const Center(child: Loader()),
               ),
-              loading: () => const Center(child: Loader()),
-            ),
+      ),
     );
   }
 }

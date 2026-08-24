@@ -284,27 +284,71 @@ class _MessMenuSectionState extends ConsumerState<MessMenuSection> {
                   ),
                 ),
               ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 13),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      items[i],
-                      style: TextStyle(
-                        fontFamily: 'Outfit',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _menuItemRow(context, items[i]),
           ],
         ],
       ),
+    );
+  }
+
+  Widget _menuItemRow(BuildContext context, MessItem item) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
+    // Special items (red in the sheet) get a soft tinted pill: green for
+    // veg, red for non-veg. Text color stays untouched.
+    Color? tint;
+    Color? dotColor;
+    if (item.special) {
+      final nonVeg = item.nonVeg;
+      tint = nonVeg
+          ? (isDark ? const Color(0xFF2A1518) : const Color(0xFFFBEBEE))
+          : (isDark ? const Color(0xFF12291B) : const Color(0xFFE7F2EA));
+      dotColor = nonVeg
+          ? (isDark ? const Color(0xFFE08A99) : const Color(0xFFC23B52))
+          : (isDark ? const Color(0xFF7FC79B) : const Color(0xFF2E7D4F));
+    }
+
+    final row = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 13),
+      child: Row(
+        children: [
+          if (dotColor != null) ...[
+            Container(
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(
+                color: dotColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 10),
+          ],
+          Expanded(
+            child: Text(
+              item.name,
+              style: TextStyle(
+                fontFamily: 'Outfit',
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (tint == null) return row;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: tint,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: row,
     );
   }
 }

@@ -1,9 +1,35 @@
+/// A single food item. [special] marks items highlighted in the Excel
+/// sheet (red font), [nonVeg] marks explicit non-veg items.
+class MessItem {
+  final String name;
+  final bool special;
+  final bool nonVeg;
+
+  const MessItem({
+    required this.name,
+    this.special = false,
+    this.nonVeg = false,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'n': name,
+        if (special) 's': true,
+        if (nonVeg) 'v': true,
+      };
+
+  factory MessItem.fromJson(Map<String, dynamic> json) => MessItem(
+        name: json['n'] as String,
+        special: json['s'] as bool? ?? false,
+        nonVeg: json['v'] as bool? ?? false,
+      );
+}
+
 /// One day's mess menu, split by meal.
 class MessDayMenu {
-  final List<String> breakfast;
-  final List<String> lunch;
-  final List<String> snacks;
-  final List<String> dinner;
+  final List<MessItem> breakfast;
+  final List<MessItem> lunch;
+  final List<MessItem> snacks;
+  final List<MessItem> dinner;
 
   const MessDayMenu({
     this.breakfast = const [],
@@ -12,7 +38,7 @@ class MessDayMenu {
     this.dinner = const [],
   });
 
-  List<String> forMeal(int mealIndex) {
+  List<MessItem> forMeal(int mealIndex) {
     switch (mealIndex) {
       case 0:
         return breakfast;
@@ -26,18 +52,25 @@ class MessDayMenu {
   }
 
   Map<String, dynamic> toJson() => {
-        'breakfast': breakfast,
-        'lunch': lunch,
-        'snacks': snacks,
-        'dinner': dinner,
+        'breakfast': breakfast.map((e) => e.toJson()).toList(),
+        'lunch': lunch.map((e) => e.toJson()).toList(),
+        'snacks': snacks.map((e) => e.toJson()).toList(),
+        'dinner': dinner.map((e) => e.toJson()).toList(),
       };
 
   factory MessDayMenu.fromJson(Map<String, dynamic> json) => MessDayMenu(
-        breakfast:
-            (json['breakfast'] as List<dynamic>?)?.cast<String>() ?? const [],
-        lunch: (json['lunch'] as List<dynamic>?)?.cast<String>() ?? const [],
-        snacks: (json['snacks'] as List<dynamic>?)?.cast<String>() ?? const [],
-        dinner: (json['dinner'] as List<dynamic>?)?.cast<String>() ?? const [],
+        breakfast: (json['breakfast'] as List<dynamic>? ?? const [])
+            .map((e) => MessItem.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        lunch: (json['lunch'] as List<dynamic>? ?? const [])
+            .map((e) => MessItem.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        snacks: (json['snacks'] as List<dynamic>? ?? const [])
+            .map((e) => MessItem.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        dinner: (json['dinner'] as List<dynamic>? ?? const [])
+            .map((e) => MessItem.fromJson(e as Map<String, dynamic>))
+            .toList(),
       );
 }
 

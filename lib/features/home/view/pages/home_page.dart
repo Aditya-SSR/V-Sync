@@ -8,16 +8,34 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return const Scaffold(
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              MilestonesSection(),
-              MessMenuSection(),
-              SizedBox(height: 24),
+              const MilestonesSection(),
+              // Fading hairline separating the countdowns from the mess menu.
+              Container(
+                height: 1.5,
+                margin: const EdgeInsets.symmetric(vertical: 24),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(1),
+                  gradient: LinearGradient(
+                    colors: [
+                      colorScheme.outlineVariant.withValues(alpha: 0),
+                      colorScheme.outlineVariant,
+                      colorScheme.outlineVariant,
+                      colorScheme.outlineVariant.withValues(alpha: 0),
+                    ],
+                  ),
+                ),
+              ),
+              const MessMenuSection(),
+              const SizedBox(height: 24),
             ],
           ),
         ),

@@ -36,38 +36,61 @@ class _AuthFieldState extends State<AuthField> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return AutofillGroup(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            widget.title ?? widget.hintText,
-            style: Theme.of(context).textTheme.labelMedium,
+            (widget.title ?? widget.hintText).toUpperCase(),
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 10.5,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.8,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 6),
           TextFormField(
             controller: widget.controller,
-            style: Theme.of(context).textTheme.bodySmall,
+            style: TextStyle(
+              fontFamily: 'Outfit',
+              fontSize: 15.5,
+              fontWeight: FontWeight.w500,
+              color: colorScheme.onSurface,
+            ),
             decoration: InputDecoration(
-              constraints: BoxConstraints(
-                  maxWidth: MediaQuery.sizeOf(context).width - 80),
-              contentPadding: const EdgeInsets.all(18),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 15,
+              ),
               hintText: widget.hintText,
-              hintStyle: Theme.of(context).textTheme.bodySmall,
+              hintStyle: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 13.5,
+                color: colorScheme.onSurfaceVariant,
+              ),
               prefixIcon: widget.isObscureText
-                  ? const Icon(Iconsax.lock_1)
-                  : const Icon(Iconsax.user),
+                  ? Icon(Iconsax.lock_1, size: 19, color: colorScheme.onSurfaceVariant)
+                  : Icon(Iconsax.user, size: 19, color: colorScheme.onSurfaceVariant),
               suffixIcon: widget.isObscureText
                   ? IconButton(
                       icon: Icon(
                         _obscureText ? Iconsax.eye_slash : Iconsax.eye,
+                        size: 19,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                       onPressed: _toggleVisibility,
                     )
                   : null,
+              filled: true,
+              fillColor: colorScheme.surfaceContainerLow,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
               ),
             ),
             autofillHints: widget.isObscureText

@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
@@ -7,9 +6,7 @@ import 'package:vit_ap_student_app/core/common/widget/bottom_navigation_bar.dart
 import 'package:vit_ap_student_app/core/common/widget/loader.dart';
 import 'package:vit_ap_student_app/core/network/connection_checker.dart';
 import 'package:vit_ap_student_app/core/services/demo_service.dart';
-import 'package:vit_ap_student_app/core/utils/launch_web.dart';
 import 'package:vit_ap_student_app/core/utils/show_snackbar.dart';
-import 'package:vit_ap_student_app/core/utils/theme_switch_button.dart';
 import 'package:vit_ap_student_app/features/auth/view/pages/semester_selection_page.dart';
 import 'package:vit_ap_student_app/features/auth/viewmodel/auth_viewmodel.dart';
 import 'package:vit_ap_student_app/features/auth/viewmodel/semester_viewmodel.dart';
@@ -25,20 +22,11 @@ class LoginPageState extends ConsumerState<LoginPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  late TapGestureRecognizer _tapRecognizer;
-
-  @override
-  void initState() {
-    super.initState();
-    _tapRecognizer = TapGestureRecognizer()
-      ..onTap = () => directToWeb('https://vitap.udhay-adithya.me');
-  }
 
   @override
   void dispose() {
     usernameController.dispose();
     passwordController.dispose();
-    _tapRecognizer.dispose();
     super.dispose();
   }
 
@@ -101,6 +89,7 @@ class LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final isLoading = ref.watch(
           semesterViewModelProvider.select((val) => val?.isLoading == true),
         ) ||
@@ -133,130 +122,99 @@ class LoginPageState extends ConsumerState<LoginPage> {
     });
 
     return Scaffold(
-      appBar: AppBar(actions: const [ThemeSwitchButton()]),
-      body: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Welcome',
-                style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Sign in with your VTOP credentials to continue',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w400),
-              ),
-            ),
-            const Flexible(child: SizedBox.expand()),
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  AuthField(
-                    title: 'Username',
-                    hintText: 'VTOP Username',
-                    controller: usernameController,
-                  ),
-                  const SizedBox(height: 12),
-                  AuthField(
-                    title: 'Password',
-                    hintText: 'VTOP Password',
-                    controller: passwordController,
-                    isObscureText: true,
-                  ),
-                  const SizedBox(height: 36),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.secondaryContainer,
-                      minimumSize: Size(
-                        MediaQuery.sizeOf(context).width - 100,
-                        60,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(9.0),
-                      ),
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints:
+                      BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 48),
+                        Text(
+                          'welcome back',
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 34,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.5,
+                            color: colorScheme.onSurface,
+                            height: 1.1,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'connect your college portal once and vsync '
+                          'takes it from there.',
+                          style: TextStyle(
+                            fontFamily: 'Outfit',
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w500,
+                            height: 1.45,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        AuthField(
+                          title: 'Username',
+                          hintText: 'VTOP Username',
+                          controller: usernameController,
+                        ),
+                        const SizedBox(height: 14),
+                        AuthField(
+                          title: 'Password',
+                          hintText: 'VTOP Password',
+                          controller: passwordController,
+                          isObscureText: true,
+                        ),
+                        const SizedBox(height: 28),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: FilledButton(
+                            onPressed:
+                                isLoading ? null : _fetchSemestersAndNavigate,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: colorScheme.primary,
+                              foregroundColor: colorScheme.onPrimary,
+                              disabledBackgroundColor:
+                                  colorScheme.surfaceContainerHigh,
+                              disabledForegroundColor:
+                                  colorScheme.onSurfaceVariant,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            child: isLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: Loader(),
+                                  )
+                                : const Text(
+                                    'continue',
+                                    style: TextStyle(
+                                      fontFamily: 'Outfit',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
                     ),
-                    onPressed: isLoading
-                        ? null
-                        : () {
-                            _fetchSemestersAndNavigate();
-                          },
-                    child: isLoading
-                        ? const SizedBox(width: 24, height: 24, child: Loader())
-                        : const Text('Continue'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Flexible(child: SizedBox.expand()),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 36.0,
-                  horizontal: 18.0,
-                ),
-                child: Text.rich(
-                  textAlign: TextAlign.center,
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: "Upon login you agree to VITAP Student App's ",
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      TextSpan(
-                        text: 'Privacy Policy ',
-                        style: TextStyle(
-                          decoration: TextDecoration.underline,
-                          decorationColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        recognizer: _tapRecognizer,
-                        mouseCursor: SystemMouseCursors.precise,
-                      ),
-                      TextSpan(
-                        text: 'and ',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      TextSpan(
-                        text: 'Terms of Service',
-                        style: TextStyle(
-                          decoration: TextDecoration.underline,
-                          decorationColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        recognizer: _tapRecognizer,
-                        mouseCursor: SystemMouseCursors.precise,
-                      ),
-                    ],
                   ),
                 ),
-              ),
-            ),
-          ],
+              );
+            },
+          ),
         ),
       ),
     );

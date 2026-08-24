@@ -10,12 +10,12 @@ class GradeCard extends StatelessWidget {
     required this.course,
   });
 
-  /// Monochrome-friendly grade hierarchy: greens at the top, warm tones
-  /// in the middle, red at the bottom.
+  /// Monochrome-friendly grade hierarchy: gold at the very top, greens
+  /// after that, warm tones in the middle, red at the bottom.
   static (Color, Color) _gradeColors(String grade) {
     switch (grade.trim().toUpperCase()) {
       case 'S':
-        return (const Color(0xFFBFE6C8), const Color(0xFF1B5E20)); // light green
+        return (const Color(0xFFFFC93C), const Color(0xFF4A3200)); // gold
       case 'A':
         return (const Color(0xFF2E7D32), Colors.white); // dark green
       case 'B':
@@ -51,14 +51,28 @@ class GradeCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Grade badge
+              // Grade badge — S gets a shiny gold gradient.
               Container(
                 width: 52,
                 height: 52,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: badgeColor,
                   shape: BoxShape.circle,
+                  gradient: course.grade.trim().toUpperCase() == 'S'
+                      ? const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFFFFE082),
+                            Color(0xFFFFC93C),
+                            Color(0xFFE6A817),
+                          ],
+                          stops: [0.0, 0.55, 1.0],
+                        )
+                      : null,
+                  color: course.grade.trim().toUpperCase() == 'S'
+                      ? null
+                      : badgeColor,
                 ),
                 child: Text(
                   course.grade,
