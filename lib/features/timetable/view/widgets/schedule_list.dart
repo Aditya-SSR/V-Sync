@@ -8,6 +8,19 @@ import 'package:vit_ap_student_app/core/providers/current_user.dart';
 import 'package:vit_ap_student_app/core/utils/format_to_12_hour.dart';
 import 'package:vit_ap_student_app/core/utils/get_classes.dart';
 
+/// Neutral (non-themed) text colors for the timetable — class content
+/// stays monochrome in every accent theme; only the day chips and the
+/// background aura carry the theme color.
+Color _neutralText(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? Colors.white
+        : Colors.black;
+
+Color _neutralMuted(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFFB3B3B3)
+        : const Color(0xFF4D4D4D);
+
 class ScheduleList extends ConsumerStatefulWidget {
   final String day;
   final Future<void> Function()? onRefresh;
@@ -265,7 +278,7 @@ class _ClassRow extends StatelessWidget {
                       fontFamily: 'Outfit',
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurface,
+                      color: _neutralText(context),
                     ),
                   ),
                 ),
@@ -279,7 +292,7 @@ class _ClassRow extends StatelessWidget {
                 Icon(
                   Iconsax.clock_copy,
                   size: 13,
-                  color: colorScheme.onSurfaceVariant,
+                  color: _neutralMuted(context),
                 ),
                 const SizedBox(width: 5),
                 Flexible(
@@ -288,7 +301,7 @@ class _ClassRow extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 12.5,
-                      color: colorScheme.onSurfaceVariant,
+                      color: _neutralMuted(context),
                     ),
                   ),
                 ),
@@ -298,7 +311,7 @@ class _ClassRow extends StatelessWidget {
                     '•',
                     style: TextStyle(
                       fontSize: 10,
-                      color: colorScheme.onSurfaceVariant,
+                      color: _neutralMuted(context),
                     ),
                   ),
                 ),
@@ -310,7 +323,7 @@ class _ClassRow extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 12.5,
-                      color: colorScheme.onSurfaceVariant,
+                      color: _neutralMuted(context),
                     ),
                   ),
                 ),
@@ -335,7 +348,7 @@ class _TypePill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
       decoration: BoxDecoration(
-        color: isLab ? colorScheme.primary : Colors.transparent,
+        color: isLab ? _neutralText(context) : Colors.transparent,
         borderRadius: BorderRadius.circular(7),
         border: isLab
             ? null
@@ -348,7 +361,9 @@ class _TypePill extends StatelessWidget {
           fontSize: 9.5,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.6,
-          color: isLab ? colorScheme.onPrimary : colorScheme.onSurface,
+          color: isLab
+              ? Theme.of(context).colorScheme.surface
+              : _neutralText(context),
         ),
       ),
     );
@@ -396,7 +411,7 @@ class _ClassDetailsCard extends StatelessWidget {
                       fontFamily: 'Outfit',
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurface,
+                      color: _neutralText(context),
                     ),
                   ),
                 ),
@@ -430,8 +445,6 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 9),
       child: Row(
@@ -446,7 +459,7 @@ class _DetailRow extends StatelessWidget {
                 fontSize: 10.5,
                 fontWeight: FontWeight.w500,
                 letterSpacing: 0.8,
-                color: colorScheme.onSurfaceVariant,
+                color: _neutralMuted(context),
               ),
             ),
           ),
@@ -458,7 +471,7 @@ class _DetailRow extends StatelessWidget {
                 fontFamily: 'Outfit',
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: colorScheme.onSurface,
+                color: _neutralText(context),
               ),
             ),
           ),
@@ -467,3 +480,4 @@ class _DetailRow extends StatelessWidget {
     );
   }
 }
+

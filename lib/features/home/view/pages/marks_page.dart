@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:vit_ap_student_app/core/common/widget/app_card.dart';
 import 'package:vit_ap_student_app/core/common/widget/empty_content_view.dart';
 import 'package:vit_ap_student_app/core/common/widget/error_content_view.dart';
 import 'package:vit_ap_student_app/core/common/widget/loader.dart';
@@ -243,24 +244,16 @@ class _MarksPageState extends ConsumerState<MarksPage>
           totalWeightage += double.tryParse(detail.weightageMark) ?? 0;
           maxWeightage += double.tryParse(detail.weightage) ?? 0;
         }
-
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
           child: GestureDetector(
             onTap: () {
               showMarksDetailBottomSheet(course, context);
             },
-            child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outlineVariant,
-                width: 0.75,
-              ),
-            ),
-            child: Column(
+            child: AppCard(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [

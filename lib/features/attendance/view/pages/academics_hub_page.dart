@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:vit_ap_student_app/core/common/widget/accent_gradient_text.dart';
+import 'package:vit_ap_student_app/core/common/widget/app_card.dart';
 import 'package:vit_ap_student_app/features/attendance/view/pages/attendance_page.dart';
 import 'package:vit_ap_student_app/features/home/view/pages/exam_schedule_page.dart';
 import 'package:vit_ap_student_app/features/home/view/pages/grade_history_page.dart';
@@ -21,12 +23,14 @@ class AcademicsHubPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              Text(
+              const AccentGradientText(
                 'Academics',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineMedium
-                    ?.copyWith(fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontFamily: 'Outfit',
+                  fontSize: 26,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.5,
+                ),
               ),
               const SizedBox(height: 20),
               _HubCard(
@@ -98,13 +102,8 @@ class _HubCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: AppCard(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: colorScheme.outlineVariant, width: 0.75),
-        ),
         child: Row(
           children: [
             Container(

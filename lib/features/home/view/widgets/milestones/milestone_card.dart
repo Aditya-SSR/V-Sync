@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:vit_ap_student_app/core/common/widget/app_card.dart';
 import 'package:vit_ap_student_app/features/home/model/milestone.dart';
-
 class MilestoneCard extends StatelessWidget {
   final Milestone milestone;
 
@@ -9,12 +9,14 @@ class MilestoneCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
 
-    // Monochrome hierarchy: the card sits one step above the page
-    // surface (light gray in light mode, dark gray on black in dark).
-    final cardColor = colorScheme.surfaceContainerHigh;
-    final foreground = colorScheme.onSurface;
-    final muted = colorScheme.onSurfaceVariant;
+    // Countdown card text stays neutral in every accent theme — only
+    // the card edges carry the theme color.
+    final foreground = isDark ? Colors.white : Colors.black;
+    final muted = isDark
+        ? const Color(0xFFB3B3B3)
+        : const Color(0xFF4D4D4D);
 
     final daysLeft = milestone.daysLeft();
     final hoursLeft = milestone.hoursLeft();
@@ -40,12 +42,8 @@ class MilestoneCard extends StatelessWidget {
       unitLabel = '';
     }
 
-    return Container(
+    return AppCard(
       padding: const EdgeInsets.fromLTRB(22, 20, 22, 20),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(18),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

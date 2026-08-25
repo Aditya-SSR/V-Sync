@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:vit_ap_student_app/core/common/widget/accent_gradient_text.dart';
 import 'package:vit_ap_student_app/features/home/view/pages/milestone_manage_page.dart';
 import 'package:vit_ap_student_app/features/home/view/widgets/milestones/milestone_card.dart';
 import 'package:vit_ap_student_app/features/home/viewmodel/milestones_viewmodel.dart';
@@ -93,12 +94,12 @@ class _MilestonesSectionState extends ConsumerState<MilestonesSection> {
           padding: const EdgeInsets.fromLTRB(16, 4, 8, 12),
           child: Row(
             children: [
-              Text(
+              AccentGradientText(
                 'Countdowns',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w600),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 22,
+                    ),
               ),
               const Spacer(),
               TextButton(

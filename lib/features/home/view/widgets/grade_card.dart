@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:vit_ap_student_app/core/common/widget/app_card.dart';
 import 'package:vit_ap_student_app/core/models/grade_history.dart';
 
 class GradeCard extends StatelessWidget {
@@ -38,13 +39,8 @@ class GradeCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final (badgeColor, badgeTextColor) = _gradeColors(course.grade);
 
-    return Container(
+    return AppCard(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 12),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: colorScheme.outlineVariant, width: 0.75),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -106,7 +102,7 @@ class GradeCard extends StatelessWidget {
                       course.courseCode,
                       style: TextStyle(
                         fontFamily: 'Inter',
-                        color: colorScheme.onSurfaceVariant,
+                        color: colorScheme.tertiary,
                         fontWeight: FontWeight.w400,
                         fontSize: 13,
                       ),

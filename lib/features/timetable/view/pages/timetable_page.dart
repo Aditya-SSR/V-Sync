@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:vit_ap_student_app/core/common/widget/loader.dart';
 import 'package:vit_ap_student_app/core/models/timetable.dart';
+import 'package:vit_ap_student_app/core/theme/app_theme.dart';
 import 'package:vit_ap_student_app/core/providers/current_user.dart';
 import 'package:vit_ap_student_app/core/utils/get_classes.dart';
 import 'package:vit_ap_student_app/features/timetable/view/widgets/schedule_list.dart';
@@ -66,12 +67,6 @@ class _TimetablePageState extends ConsumerState<TimetablePage>
     );
   }
 
-  int _getSelectedDayIndex(List<int> activeDays) {
-    if (_tabController == null || activeDays.isEmpty) return activeDays.first;
-    final clamped = _tabController!.index.clamp(0, activeDays.length - 1);
-    return activeDays[clamped];
-  }
-
   Future<void> refresh() async {
     await ref.read(timetableViewModelProvider.notifier).refreshTimetable();
   }
@@ -127,13 +122,43 @@ class _TimetablePageState extends ConsumerState<TimetablePage>
     final activeDays = _getActiveDays(timetable);
     _syncTabController(activeDays);
     final controller = _tabController!;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // Aura color follows the accent theme (gold/emerald); monochrome
+    // falls back to the primary.
+    final auraColor = GoldPalette.isActive(Theme.of(context))
+        ? GoldPalette.edgeBright
+        : EmeraldPalette.isActive(Theme.of(context))
+            ? EmeraldPalette.edgeBright
+            : colorScheme.primary;
 
     return Scaffold(
       body: activeDays.isEmpty
           ? _buildCompletelyEmpty(context)
-          : SafeArea(
-              bottom: false,
-              child: Column(
+          : Stack(
+              children: [
+                // Subtle theme-colored aura behind the day strip.
+                Positioned(
+                  top: -140,
+                  left: -60,
+                  right: -60,
+                  child: IgnorePointer(
+                    child: Container(
+                      height: 320,
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          colors: [
+                            auraColor.withValues(alpha: 0.14),
+                            auraColor.withValues(alpha: 0.0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SafeArea(
+                  bottom: false,
+                  child: Column(
                 children: [
                   const SizedBox(height: 12),
                   Padding(
@@ -167,10 +192,14 @@ class _TimetablePageState extends ConsumerState<TimetablePage>
                               _buildSubtitle(
                                   timetable, activeDays[liveIndex]),
                               textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(fontSize: 13),
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 13,
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? const Color(0xFFB3B3B3)
+                                    : const Color(0xFF4D4D4D),
+                              ),
                             ),
                           ],
                         );
@@ -185,19 +214,21 @@ class _TimetablePageState extends ConsumerState<TimetablePage>
                             controller: controller,
                             physics: const BouncingScrollPhysics(),
                             children: [
-                              for (final dayIndex in activeDays)
-                                ScheduleList(
-                                  day: _dayNames[dayIndex],
-                                  onRefresh: refresh,
-                                ),
-                            ],
-                          ),
-                  ),
-                ],
-              ),
-            ),
-    );
-  }
+                             for (final dayIndex in activeDays)
+                                 ScheduleList(
+                                   day: _dayNames[dayIndex],
+                                   onRefresh: refresh,
+                                 ),
+                             ],
+                           ),
+                   ),
+                 ],
+               ),
+             ),
+           ],
+         ),
+      );
+   }
 
   Widget _buildDayChip(
     BuildContext context, {

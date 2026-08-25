@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:vit_ap_student_app/core/common/widget/accent_gradient_text.dart';
 import 'package:vit_ap_student_app/features/home/viewmodel/milestones_viewmodel.dart';
 
 class MilestoneManagePage extends ConsumerWidget {
@@ -14,7 +15,7 @@ class MilestoneManagePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: AccentGradientText(
           'Manage countdowns',
           style: Theme.of(context)
               .textTheme
@@ -436,3 +437,4 @@ class _AddMilestoneSheetState extends ConsumerState<_AddMilestoneSheet> {
     );
   }
 }
+

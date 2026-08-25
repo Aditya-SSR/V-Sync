@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:vit_ap_student_app/core/providers/color_theme_notifier.dart';
 import 'package:vit_ap_student_app/core/providers/user_preferences_notifier.dart';
 import 'package:vit_ap_student_app/core/theme/app_theme.dart';
 
@@ -11,10 +12,12 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
   ThemeData build() {
     // Get user preferences to determine initial theme
     final userPreferences = ref.read(userPreferencesProvider);
+    final colorTheme = ref.watch(colorThemeProvider);
 
     return getThemeData(
       isDarkMode: userPreferences.isDarkModeEnabled,
       isAmoled: userPreferences.isAmoledEnabled,
+      colorTheme: colorTheme,
     );
   }
 
@@ -29,8 +32,10 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
         .read(userPreferencesProvider.notifier)
         .updatePreferences(updatedPreferences);
 
-    // Rebuild theme with new mode
+    // Rebuild MaterialApp theme.
     ref.invalidateSelf();
+    // Gold is dark-mode-only: re-sync the launcher icon for the new mode.
+    ref.read(colorThemeProvider.notifier).syncLauncherIcon();
   }
 
   Future<void> toggleAmoled() async {

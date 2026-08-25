@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:vit_ap_student_app/core/common/widget/accent_gradient_text.dart';
 import 'package:vit_ap_student_app/core/common/widget/auth_field.dart';
 import 'package:vit_ap_student_app/core/common/widget/bottom_navigation_bar.dart';
 import 'package:vit_ap_student_app/core/common/widget/loader.dart';
@@ -138,14 +139,13 @@ class LoginPageState extends ConsumerState<LoginPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 48),
-                        Text(
+                        AccentGradientText(
                           'welcome back',
                           style: TextStyle(
                             fontFamily: 'Outfit',
                             fontSize: 34,
                             fontWeight: FontWeight.w600,
                             letterSpacing: -0.5,
-                            color: colorScheme.onSurface,
                             height: 1.1,
                           ),
                         ),

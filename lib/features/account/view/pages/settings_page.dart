@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:vit_ap_student_app/core/common/widget/accent_gradient_text.dart';
+import 'package:vit_ap_student_app/core/providers/color_theme_notifier.dart';
 import 'package:vit_ap_student_app/core/providers/theme_mode_notifier.dart';
 import 'package:vit_ap_student_app/core/providers/user_preferences_notifier.dart';
+import 'package:vit_ap_student_app/core/theme/app_theme.dart';
 import 'package:vit_ap_student_app/features/account/view/widgets/developer_mode_tiles.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -19,15 +22,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget build(BuildContext context) {
     final userPreferences = ref.watch(userPreferencesProvider);
     final userPreferencesNotifier = ref.read(userPreferencesProvider.notifier);
+    final colorTheme = ref.watch(colorThemeProvider);
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: AccentGradientText(
           'Settings',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+          style: Theme.of(context)
+              .textTheme
+              .headlineSmall
+              ?.copyWith(fontWeight: FontWeight.w600),
         ),
         actions: [
           if (widget.isDeveloperModeEnabled)
@@ -78,6 +84,65 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
 
           const SizedBox(height: 20),
+
+          // Color theme — gold is a dark-mode-only theme.
+          if (userPreferences.isDarkModeEnabled) ...[
+            Padding(
+              padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+              child: Text(
+                'Color theme',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              alignment: WrapAlignment.center,
+              children: [
+                _ThemePill(
+                  title: 'Monochrome',
+                  selected: colorTheme == AppColorTheme.mono,
+                  onTap: () => ref
+                      .read(colorThemeProvider.notifier)
+                      .setTheme(AppColorTheme.mono),
+                  fill: isDark
+                      ? const Color(0xFF1A1A1A)
+                      : const Color(0xFFEDEDED),
+                  textColor: isDark ? Colors.white : Colors.black,
+                  selectedFill: isDark ? Colors.white : Colors.black,
+                  selectedTextColor: isDark ? Colors.black : Colors.white,
+                ),
+                _ThemePill(
+                  title: 'Gold',
+                  selected: colorTheme == AppColorTheme.gold,
+                  onTap: () => ref
+                      .read(colorThemeProvider.notifier)
+                      .setTheme(AppColorTheme.gold),
+                  fill: const Color(0xFF2E2712),
+                  textColor: const Color(0xFFE6C15A),
+                  selectedFill: const Color(0xFFD4AF37),
+                  selectedTextColor: const Color(0xFF1A1602),
+                ),
+                _ThemePill(
+                  title: 'Emerald',
+                  selected: colorTheme == AppColorTheme.emerald,
+                  onTap: () => ref
+                      .read(colorThemeProvider.notifier)
+                      .setTheme(AppColorTheme.emerald),
+                  fill: const Color(0xFF12241B),
+                  textColor: const Color(0xFF98D8B4),
+                  selectedFill: const Color(0xFF4EA77D),
+                  selectedTextColor: const Color(0xFF06130C),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+          ],
 
           // Font scale
           Padding(
@@ -138,6 +203,52 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
           const SizedBox(height: 24),
         ],
+      ),
+    );
+  }
+}
+
+/// Stadium-shaped theme selector pill (tinted fill + accent text).
+class _ThemePill extends StatelessWidget {
+  final String title;
+  final bool selected;
+  final VoidCallback onTap;
+  final Color fill;
+  final Color textColor;
+  final Color selectedFill;
+  final Color selectedTextColor;
+
+  const _ThemePill({
+    required this.title,
+    required this.selected,
+    required this.onTap,
+    required this.fill,
+    required this.textColor,
+    required this.selectedFill,
+    required this.selectedTextColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+        decoration: BoxDecoration(
+          color: selected ? selectedFill : fill,
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontFamily: 'Outfit',
+            fontSize: 13.5,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            color: selected ? selectedTextColor : textColor,
+          ),
+        ),
       ),
     );
   }

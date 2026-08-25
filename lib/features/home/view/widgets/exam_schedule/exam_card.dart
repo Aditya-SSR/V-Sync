@@ -85,7 +85,7 @@ class ExamCard extends StatelessWidget {
               Text(
                 exam.courseCode,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                  color: colorScheme.tertiary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -389,3 +389,4 @@ class _DetailSection extends StatelessWidget {
     );
   }
 }
+

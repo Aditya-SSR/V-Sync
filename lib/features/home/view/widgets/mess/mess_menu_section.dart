@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:vit_ap_student_app/core/common/widget/accent_gradient_text.dart';
 import 'package:vit_ap_student_app/core/utils/show_toast.dart';
 import 'package:vit_ap_student_app/features/home/model/mess_menu.dart';
 import 'package:vit_ap_student_app/features/home/viewmodel/mess_menu_viewmodel.dart';
@@ -77,12 +78,12 @@ class _MessMenuSectionState extends ConsumerState<MessMenuSection> {
           padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
           child: Row(
             children: [
-              Text(
+              AccentGradientText(
                 'Mess Menu',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w600),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 22,
+                    ),
               ),
               const Spacer(),
               GestureDetector(
@@ -217,6 +218,14 @@ class _MessMenuSectionState extends ConsumerState<MessMenuSection> {
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final isSelected = _selectedMeal == index;
+          final isDark = colorScheme.brightness == Brightness.dark;
+          // Meal tabs stay monochrome regardless of the accent theme.
+          final fill = isSelected
+              ? (isDark ? Colors.white : Colors.black)
+              : colorScheme.surfaceContainerLow;
+          final label = isSelected
+              ? (isDark ? Colors.black : Colors.white)
+              : colorScheme.onSurfaceVariant;
           return GestureDetector(
             onTap: () {
               setState(() {
@@ -228,9 +237,7 @@ class _MessMenuSectionState extends ConsumerState<MessMenuSection> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: isSelected
-                    ? colorScheme.primary
-                    : colorScheme.surfaceContainerLow,
+                color: fill,
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Text(
@@ -240,9 +247,7 @@ class _MessMenuSectionState extends ConsumerState<MessMenuSection> {
                   fontSize: 13.5,
                   fontWeight:
                       isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected
-                      ? colorScheme.onPrimary
-                      : colorScheme.onSurfaceVariant,
+                  color: label,
                 ),
               ),
             ),
