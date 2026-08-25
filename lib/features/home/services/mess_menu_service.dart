@@ -267,6 +267,29 @@ class MessMenuService {
     }
     if (headerRow == -1) return null;
 
+    // 1b. Weekly pattern format (women's hostel): the label column holds
+    // weekday names instead of dates, and each cell packs multiple items
+    // separated by newlines. The menu repeats weekly for the whole month.
+    final weekdayLabels = <int, List<int>>{}; // row -> weekday numbers
+    var weeklyFormat = true;
+    for (var r = headerRow + 1; r < grid.length; r++) {
+      final row = grid[r];
+      final label = row.isNotEmpty ? row[0] : '';
+      if (label.isEmpty) continue;
+      if (RegExp(r'\d').hasMatch(label)) {
+        // Date-based labels — this is the monthly format, not weekly.
+        weeklyFormat = false;
+        break;
+      }
+      final days_ = _weekdaysFromLabel(label);
+      if (days_ != null) weekdayLabels[r] = days_;
+    }
+
+    if (weeklyFormat && weekdayLabels.length >= 2) {
+      return _menuFromWeeklyPattern(grid, weekdayLabels, monthHint,
+          mealCols: [breakfastCol, lunchCol, snacksCol, dinnerCol]);
+    }
+
     // 2. Month: trust the workbook-wide "MONTH OF <name>" hint first, then
     // any month name inside this sheet, then the current month.
     var month = monthHint;
@@ -303,6 +326,8 @@ class MessMenuService {
     // boundaries.
     final days = <int, Map<String, List<String>>>{};
 
+    int weekOfMonth(int day) => ((day - 1) ~/ 7) + 1;
+
     void addItemsToDays(List<int> targetDays, List<int> cols, int r) {
       final row = grid[r];
       String cellAt(int col) =>
@@ -318,10 +343,13 @@ class MessMenuService {
                     ? 'dinner'
                     : 'breakfast';
         for (final day in targetDays) {
+          // Resolve "(week1,week3)" / "(alt weeks)" alternates per date.
+          final resolved = _applyWeekTag(value, weekOfMonth(day));
+          if (resolved == null || resolved.isEmpty) continue;
           days
               .putIfAbsent(day, () => {})
               .putIfAbsent(key, () => [])
-              .add(value);
+              .add(resolved);
         }
       }
     }
@@ -416,5 +444,138 @@ class MessMenuService {
       'july', 'august', 'september', 'october', 'november', 'december',
     ];
     return months[month - 1];
+  }
+
+  /// Resolves weekly alternates inside an item line against the date's
+  /// week of month. Lines tagged "(week1,week3)" survive only on those
+  /// weeks, "(alt weeks)" on odd weeks; untagged lines always survive.
+  /// The tag itself is stripped from the kept text.
+  static String? _applyWeekTag(String line, int weekOfMonth) {
+    final tagMatch = RegExp(
+      r'\((?:week|alt)\s*[^)]*\)',
+      caseSensitive: false,
+    ).firstMatch(line);
+    if (tagMatch == null) return line;
+
+    final tag = tagMatch.group(0)!.toLowerCase();
+    final isAlt = tag.contains('alt');
+    final weeks = RegExp(r'\d+')
+        .allMatches(tag)
+        .map((m) => int.parse(m.group(0)!))
+        .toSet();
+    final keep = isAlt ? weekOfMonth.isOdd : weeks.contains(weekOfMonth);
+    if (!keep) return null;
+
+    return line
+        .replaceFirst(tagMatch.group(0)!, '')
+        .replaceAll(RegExp(r'[/+]\s*$'), '')
+        .trim();
+  }
+
+  /// Parses a weekly-pattern label like "Monday / Friday" or
+  /// "Tuesday / Thursday / Saturday" into DateTime weekday numbers
+  /// (1 = Monday ... 7 = Sunday). Returns null when the label doesn't
+  /// look like a pure weekday list.
+  static List<int>? _weekdaysFromLabel(String label) {
+    final lower = label.toLowerCase();
+    const map = {
+      'mon': DateTime.monday,
+      'tue': DateTime.tuesday,
+      'wed': DateTime.wednesday,
+      'thu': DateTime.thursday,
+      'fri': DateTime.friday,
+      'sat': DateTime.saturday,
+      'sun': DateTime.sunday,
+    };
+    final result = <int>{};
+    for (final entry in map.entries) {
+      if (lower.contains(entry.key)) result.add(entry.value);
+    }
+    return result.isEmpty ? null : result.toList();
+  }
+
+  /// Builds a [MessMenu] from the weekly-pattern format: each labelled row
+  /// repeats on its weekdays for every week of the month, and each meal
+  /// cell holds newline-separated items.
+  static MessMenu _menuFromWeeklyPattern(
+    List<List<String>> grid,
+    Map<int, List<int>> weekdayLabels,
+    int monthHint, {
+    required List<int> mealCols,
+  }) {
+    var month = monthHint;
+    if (month == -1) {
+      // Weekly sheets usually don't carry a month title — apply to the
+      // current month.
+      month = DateTime.now().month;
+    }
+    final now = DateTime.now();
+    final year = month < now.month ? now.year + 1 : now.year;
+    final monthName = _monthName(month);
+
+    String mealKey(int col) {
+      // The caller passes cols in [breakfast, lunch, snacks, dinner] order.
+      return switch (mealCols.indexOf(col)) {
+        0 => 'breakfast',
+        1 => 'lunch',
+        2 => 'snacks',
+        _ => 'dinner',
+      };
+    }
+
+    final days = <int, Map<String, List<String>>>{};
+    final daysInMonth = DateTime(year, month + 1, 0).day;
+
+    int weekOfMonth(int day) => ((day - 1) ~/ 7) + 1;
+
+    for (final entry in weekdayLabels.entries) {
+      final row = entry.key < grid.length ? grid[entry.key] : <String>[];
+      String cellAt(int col) =>
+          col >= 0 && col < row.length ? row[col] : '';
+
+      for (final col in mealCols) {
+        final cell = cellAt(col);
+        if (cell.trim().isEmpty) continue;
+        final lines = cell
+            .split('\n')
+            .map((line) => line.trim())
+            .where((line) => line.isNotEmpty)
+            .toList();
+        if (lines.isEmpty) continue;
+
+        final key = mealKey(col);
+        for (var day = 1; day <= daysInMonth; day++) {
+          final weekday = DateTime(year, month, day).weekday;
+          if (!entry.value.contains(weekday)) continue;
+          final week = weekOfMonth(day);
+          for (final line in lines) {
+            // Resolve "(week1,week3)" / "(alt weeks)" alternates per date.
+            final resolved = _applyWeekTag(line, week);
+            if (resolved == null || resolved.isEmpty) continue;
+            days
+                .putIfAbsent(day, () => {})
+                .putIfAbsent(key, () => [])
+                .add(resolved);
+          }
+        }
+      }
+    }
+
+    return MessMenu(
+      monthName: monthName[0].toUpperCase() + monthName.substring(1),
+      month: month,
+      year: year,
+      days: days.map(
+        (day, meals) => MapEntry(
+          day,
+          MessDayMenu(
+            breakfast: meals['breakfast'] ?? const [],
+            lunch: meals['lunch'] ?? const [],
+            snacks: meals['snacks'] ?? const [],
+            dinner: meals['dinner'] ?? const [],
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -32,12 +32,22 @@ int _parseMinutes(String? time) {
 }
 
 /// Labs run ~2 hours (e.g. 8:00 - 9:50); theory runs 50 minutes
-/// (e.g. 2:00 - 2:50). Trust `courseType` first, then fall back to
-/// session duration.
+/// (e.g. 2:00 - 2:50). Trust `courseType` first, then the venue
+/// (labs are held in venues named "... Lab"), then the slot — VTOP lab
+/// slots always start with "L" (L1, L2, ...). Duration is the last
+/// fallback.
 bool isLabClass(Day classInfo) {
-  if ((classInfo.courseType ?? '').toLowerCase().contains('lab')) {
+  final type = (classInfo.courseType ?? '').toLowerCase();
+  if (type.contains('lab')) return true;
+
+  final venue = (classInfo.venue ?? '').toLowerCase();
+  if (venue.contains('lab')) return true;
+
+  final slot = (classInfo.slot ?? '').trim().toUpperCase();
+  if (slot.startsWith('L') && slot.isNotEmpty && RegExp(r'^L\d').hasMatch(slot)) {
     return true;
   }
+
   return _parseMinutes(classInfo.endTime) -
           _parseMinutes(classInfo.startTime) >=
       90;
