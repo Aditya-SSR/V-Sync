@@ -138,6 +138,10 @@ class _MyExamScheduleState extends ConsumerState<ExamSchedulePage>
                         AnimatedBuilder(
                           animation: _tabController,
                           builder: (context, _) {
+                            // Track the swipe live instead of waiting for the
+                            // page to settle.
+                            final liveIndex =
+                                (_tabController.animation?.value ?? 0).round();
                             return Padding(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 16.0),
@@ -164,12 +168,11 @@ class _MyExamScheduleState extends ConsumerState<ExamSchedulePage>
                                             padding: const EdgeInsets
                                                 .symmetric(vertical: 11),
                                             decoration: BoxDecoration(
-                                              color:
-                                                  _tabController.index == i
-                                                      ? Theme.of(context)
-                                                          .colorScheme
-                                                          .primary
-                                                      : Colors.transparent,
+                                              color: liveIndex == i
+                                                  ? Theme.of(context)
+                                                      .colorScheme
+                                                      .primary
+                                                  : Colors.transparent,
                                               borderRadius:
                                                   BorderRadius.circular(30),
                                             ),
@@ -183,14 +186,10 @@ class _MyExamScheduleState extends ConsumerState<ExamSchedulePage>
                                                 style: TextStyle(
                                                   fontFamily: 'Outfit',
                                                   fontSize: 14.5,
-                                                  fontWeight:
-                                                      _tabController.index ==
-                                                              i
-                                                          ? FontWeight.w600
-                                                          : FontWeight.w500,
-                                                  color: _tabController
-                                                              .index ==
-                                                          i
+                                                  fontWeight: liveIndex == i
+                                                      ? FontWeight.w600
+                                                      : FontWeight.w500,
+                                                  color: liveIndex == i
                                                       ? Theme.of(context)
                                                           .colorScheme
                                                           .onPrimary

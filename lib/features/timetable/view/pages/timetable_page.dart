@@ -141,36 +141,41 @@ class _TimetablePageState extends ConsumerState<TimetablePage>
                     child: AnimatedBuilder(
                       animation: controller,
                       builder: (context, _) {
-                        return Row(
+                        // Track the swipe live instead of waiting for the
+                        // page to settle.
+                        final liveIndex = (controller.animation?.value ??
+                                controller.index.toDouble())
+                            .round()
+                            .clamp(0, activeDays.length - 1);
+                        return Column(
                           children: [
-                            for (var i = 0; i < activeDays.length; i++)
-                              Expanded(
-                                child: _buildDayChip(
-                                  context,
-                                  letter: _dayLetters[activeDays[i]],
-                                  isSelected: controller.index == i,
-                                  onTap: () => controller.animateTo(i),
-                                ),
-                              ),
+                            Row(
+                              children: [
+                                for (var i = 0; i < activeDays.length; i++)
+                                  Expanded(
+                                    child: _buildDayChip(
+                                      context,
+                                      letter: _dayLetters[activeDays[i]],
+                                      isSelected: liveIndex == i,
+                                      onTap: () => controller.animateTo(i),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _buildSubtitle(
+                                  timetable, activeDays[liveIndex]),
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(fontSize: 13),
+                            ),
                           ],
                         );
                       },
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  AnimatedBuilder(
-                    animation: controller,
-                    builder: (context, _) {
-                      final dayIndex = _getSelectedDayIndex(activeDays);
-                      return Text(
-                        _buildSubtitle(timetable, dayIndex),
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(fontSize: 13),
-                      );
-                    },
                   ),
                   const SizedBox(height: 8),
                   Expanded(

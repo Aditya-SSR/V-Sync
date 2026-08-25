@@ -154,7 +154,7 @@ class _ScheduleListState extends ConsumerState<ScheduleList> {
       },
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
         children: [
           ..._buildSection(context, 'Morning', morning),
           if (morning.isNotEmpty && afternoon.isNotEmpty)

@@ -129,6 +129,10 @@ class _MarksPageState extends ConsumerState<MarksPage>
                       AnimatedBuilder(
                         animation: _tabController!,
                         builder: (context, _) {
+                          // Track the swipe live instead of waiting for the
+                          // page to settle.
+                          final liveIndex =
+                              (_tabController!.animation?.value ?? 0).round();
                           return Padding(
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 16.0),
@@ -156,7 +160,7 @@ class _MarksPageState extends ConsumerState<MarksPage>
                                             vertical: 11,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: _tabController!.index == i
+                                            color: liveIndex == i
                                                 ? colorScheme.primary
                                                 : Colors.transparent,
                                             borderRadius:
@@ -168,13 +172,10 @@ class _MarksPageState extends ConsumerState<MarksPage>
                                               style: TextStyle(
                                                 fontFamily: 'Outfit',
                                                 fontSize: 14.5,
-                                                fontWeight: _tabController!
-                                                        .index ==
-                                                    i
+                                                fontWeight: liveIndex == i
                                                     ? FontWeight.w600
                                                     : FontWeight.w500,
-                                                color: _tabController!.index ==
-                                                        i
+                                                color: liveIndex == i
                                                     ? colorScheme.onPrimary
                                                     : colorScheme
                                                         .onSurfaceVariant,
