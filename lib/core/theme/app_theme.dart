@@ -9,6 +9,8 @@ class AppColorTheme {
   static const mono = 'mono';
   static const gold = 'gold';
   static const emerald = 'emerald';
+  static const pink = 'pink';
+  static const red = 'red';
 }
 
 /// Palette constants for the emerald theme's specular card edges.
@@ -61,6 +63,13 @@ ThemeData getThemeData({
   // Regular text stays white — only headings pick up the emerald tone
   // (handled in the text theme below). Also dark-mode-only.
   final isSapphire = colorTheme == AppColorTheme.emerald && isDarkMode;
+
+  // Light-mode accent themes: white surfaces with colored headings,
+  // hairlines and edges (white + gold / pink / red).
+  final isGoldLight = colorTheme == AppColorTheme.gold && !isDarkMode;
+  final isPink = colorTheme == AppColorTheme.pink && !isDarkMode;
+  final isRed = colorTheme == AppColorTheme.red && !isDarkMode;
+  final isLightAccent = isGoldLight || isPink || isRed;
 
   final outlineColor = isGold
       ? (isDarkMode ? const Color(0xFF9C8434) : const Color(0xFFB08D26))
@@ -176,11 +185,39 @@ ThemeData getThemeData({
     );
   }
 
-  // Headings carry the accent identity (emerald/gold); body text stays
-  // white.
+  // Light accent overrides: white surfaces with accent headings,
+  // accent hairlines/borders and accent course codes.
+  if (isGoldLight) {
+    effectiveScheme = colorScheme.copyWith(
+      tertiary: const Color(0xFFB08D26),
+      outline: const Color(0xFFB08D26),
+      outlineVariant: const Color(0xFFD4AF37),
+    );
+  } else if (isPink) {
+    effectiveScheme = colorScheme.copyWith(
+      tertiary: const Color(0xFFC2185B),
+      outline: const Color(0xFFD14D72),
+      outlineVariant: const Color(0xFFF2B8C6),
+    );
+  } else if (isRed) {
+    effectiveScheme = colorScheme.copyWith(
+      tertiary: const Color(0xFFC62828),
+      outline: const Color(0xFFC62828),
+      outlineVariant: const Color(0xFFEF9A9A),
+    );
+  }
+
+  // Headings carry the accent identity (emerald/gold light/pink/red);
+  // body text stays neutral.
   final headingColor = isSapphire
       ? EmeraldPalette.primaryText
-      : (isGold && isDarkMode ? GoldPalette.primaryText : null);
+      : (isGold && isDarkMode
+          ? GoldPalette.primaryText
+          : (isGoldLight
+              ? const Color(0xFFB08D26)
+              : (isPink
+                  ? const Color(0xFFC2185B)
+                  : (isRed ? const Color(0xFFB71C1C) : null))));
   final textOnSurface = isDarkMode ? white : black;
   final textOnSurfaceVariant = isSapphire
       ? EmeraldPalette.mutedText

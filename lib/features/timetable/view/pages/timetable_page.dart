@@ -124,13 +124,11 @@ class _TimetablePageState extends ConsumerState<TimetablePage>
     final controller = _tabController!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Aura color follows the accent theme (gold/emerald); monochrome
-    // falls back to the primary.
-    final auraColor = GoldPalette.isActive(Theme.of(context))
-        ? GoldPalette.edgeBright
-        : EmeraldPalette.isActive(Theme.of(context))
-            ? EmeraldPalette.edgeBright
-            : colorScheme.primary;
+    // Aura color follows the accent theme (tertiary carries the accent
+    // in gold/pink/red/emerald; monochrome falls back to primary).
+    final auraColor = colorScheme.tertiary == colorScheme.primary
+        ? colorScheme.primary
+        : colorScheme.tertiary;
 
     return Scaffold(
       body: activeDays.isEmpty

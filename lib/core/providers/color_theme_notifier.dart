@@ -8,13 +8,24 @@ import 'package:vit_ap_student_app/core/theme/app_theme.dart';
 final colorThemeProvider =
     NotifierProvider<ColorThemeNotifier, String>(ColorThemeNotifier.new);
 
-/// Persists the selected accent theme ('mono' | 'gold') and keeps the
-/// Android launcher icon in sync with it. Gold is dark-mode-only: the
-/// effective theme in light mode is always monochrome.
+/// Persists the selected accent theme and keeps the Android launcher icon
+/// in sync with it.
+///
+/// The choice is remembered SEPARATELY for light and dark mode: toggling
+/// dark mode restores whichever accent was last used in that mode
+/// (defaulting to monochrome). Gold/Emerald are dark-only; Pink/Gold/Red
+/// are light-only; invalid combinations fall back to monochrome.
 class ColorThemeNotifier extends Notifier<String> {
-  static const _key = 'color_theme';
+  static const _legacyKey = 'color_theme';
+  static const _darkKey = 'color_theme_dark';
+  static const _lightKey = 'color_theme_light';
   static const _appliedKey = 'launcher_icon_applied';
   static const _channel = MethodChannel('vsync/launcher_icon');
+
+  String get _bucketKey =>
+      ref.read(userPreferencesProvider).isDarkModeEnabled
+          ? _darkKey
+          : _lightKey;
 
   @override
   String build() {
@@ -22,18 +33,30 @@ class ColorThemeNotifier extends Notifier<String> {
     return AppColorTheme.mono;
   }
 
-  /// The theme that is actually in effect right now (gold only exists
-  /// in dark mode).
+  /// The theme that is actually in effect right now — invalid
+  /// mode/theme combos resolve to monochrome.
   String get effectiveTheme {
-    final dark = ref.read(userPreferencesProvider).isDarkModeEnabled;
-    if (state == AppColorTheme.gold && !dark) return AppColorTheme.mono;
-    return state;
+    switch (state) {
+      case AppColorTheme.gold:
+      case AppColorTheme.emerald:
+        final dark = ref.read(userPreferencesProvider).isDarkModeEnabled;
+        return dark ? state : AppColorTheme.mono;
+      case AppColorTheme.pink:
+      case AppColorTheme.red:
+        final dark = ref.read(userPreferencesProvider).isDarkModeEnabled;
+        return dark ? AppColorTheme.mono : state;
+      default:
+        return AppColorTheme.mono;
+    }
   }
 
   Future<void> _load() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      state = prefs.getString(_key) ?? AppColorTheme.mono;
+      final saved = prefs.getString(_bucketKey) ??
+          prefs.getString(_legacyKey) ??
+          AppColorTheme.mono;
+      state = saved;
       await syncLauncherIcon();
     } catch (_) {
       state = AppColorTheme.mono;
@@ -43,14 +66,13 @@ class ColorThemeNotifier extends Notifier<String> {
   Future<void> setTheme(String theme) async {
     state = theme;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key, theme);
+    await prefs.setString(_bucketKey, theme);
     await syncLauncherIcon();
     // Rebuild MaterialApp theme.
     ref.invalidate(themeModeProvider);
   }
 
   /// Re-applies the launcher icon for the current effective theme.
-  /// Called after dark-mode toggles too, since gold is dark-only.
   Future<void> syncLauncherIcon() async {
     final prefs = await SharedPreferences.getInstance();
     final effective = effectiveTheme;

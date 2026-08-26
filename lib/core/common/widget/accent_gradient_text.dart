@@ -11,13 +11,25 @@ class AccentGradientText extends StatelessWidget {
   const AccentGradientText(this.text, {super.key, this.style});
 
   static List<Color> gradientFor(ThemeData theme) {
-    if (EmeraldPalette.isActive(theme)) {
+    final cs = theme.colorScheme;
+    final dark = theme.brightness == Brightness.dark;
+    if (dark && EmeraldPalette.isActive(theme)) {
       return const [Color(0xFFBFE3CC), Color(0xFF4EA77D)];
     }
-    if (GoldPalette.isActive(theme)) {
+    if (dark && GoldPalette.isActive(theme)) {
       return const [Color(0xFFF0D77B), Color(0xFFC9A227)];
     }
-    return [theme.colorScheme.primary, theme.colorScheme.onSurfaceVariant];
+    // Light accent themes.
+    if (cs.tertiary == const Color(0xFFB08D26)) {
+      return const [Color(0xFFD4AF37), Color(0xFF8A6D1D)];
+    }
+    if (cs.tertiary == const Color(0xFFC2185B)) {
+      return const [Color(0xFFF48FB1), Color(0xFFC2185B)];
+    }
+    if (cs.tertiary == const Color(0xFFC62828)) {
+      return const [Color(0xFFEF5350), Color(0xFFB71C1C)];
+    }
+    return [cs.primary, cs.onSurfaceVariant];
   }
 
   @override

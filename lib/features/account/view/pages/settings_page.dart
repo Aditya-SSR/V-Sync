@@ -85,19 +85,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
           const SizedBox(height: 20),
 
-          // Color theme — gold is a dark-mode-only theme.
-          if (userPreferences.isDarkModeEnabled) ...[
-            Padding(
-              padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
-              child: Text(
-                'Color theme',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.w500,
-                ),
+          // Color theme — the available set depends on the mode:
+          // dark = Monochrome / Gold / Emerald, light = Monochrome /
+          // Pink / Gold / Red.
+          Padding(
+            padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+            child: Text(
+              'Color theme',
+              style: TextStyle(
+                fontSize: 16,
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.w500,
               ),
             ),
+          ),
             Wrap(
               spacing: 10,
               runSpacing: 10,
@@ -116,33 +117,70 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   selectedFill: isDark ? Colors.white : Colors.black,
                   selectedTextColor: isDark ? Colors.black : Colors.white,
                 ),
-                _ThemePill(
-                  title: 'Gold',
-                  selected: colorTheme == AppColorTheme.gold,
-                  onTap: () => ref
-                      .read(colorThemeProvider.notifier)
-                      .setTheme(AppColorTheme.gold),
-                  fill: const Color(0xFF2E2712),
-                  textColor: const Color(0xFFE6C15A),
-                  selectedFill: const Color(0xFFD4AF37),
-                  selectedTextColor: const Color(0xFF1A1602),
-                ),
-                _ThemePill(
-                  title: 'Emerald',
-                  selected: colorTheme == AppColorTheme.emerald,
-                  onTap: () => ref
-                      .read(colorThemeProvider.notifier)
-                      .setTheme(AppColorTheme.emerald),
-                  fill: const Color(0xFF12241B),
-                  textColor: const Color(0xFF98D8B4),
-                  selectedFill: const Color(0xFF4EA77D),
-                  selectedTextColor: const Color(0xFF06130C),
-                ),
+                if (isDark)
+                  _ThemePill(
+                    title: 'Gold',
+                    selected: colorTheme == AppColorTheme.gold,
+                    onTap: () => ref
+                        .read(colorThemeProvider.notifier)
+                        .setTheme(AppColorTheme.gold),
+                    fill: const Color(0xFF2E2712),
+                    textColor: const Color(0xFFE6C15A),
+                    selectedFill: const Color(0xFFD4AF37),
+                    selectedTextColor: const Color(0xFF1A1602),
+                  ),
+                if (isDark)
+                  _ThemePill(
+                    title: 'Emerald',
+                    selected: colorTheme == AppColorTheme.emerald,
+                    onTap: () => ref
+                        .read(colorThemeProvider.notifier)
+                        .setTheme(AppColorTheme.emerald),
+                    fill: const Color(0xFF12241B),
+                    textColor: const Color(0xFF98D8B4),
+                    selectedFill: const Color(0xFF4EA77D),
+                    selectedTextColor: const Color(0xFF06130C),
+                  ),
+                if (!isDark)
+                  _ThemePill(
+                    title: 'Pink',
+                    selected: colorTheme == AppColorTheme.pink,
+                    onTap: () => ref
+                        .read(colorThemeProvider.notifier)
+                        .setTheme(AppColorTheme.pink),
+                    fill: const Color(0xFFFBE9EE),
+                    textColor: const Color(0xFFC2185B),
+                    selectedFill: const Color(0xFFC2185B),
+                    selectedTextColor: Colors.white,
+                  ),
+                if (!isDark)
+                  _ThemePill(
+                    title: 'Gold',
+                    selected: colorTheme == AppColorTheme.gold,
+                    onTap: () => ref
+                        .read(colorThemeProvider.notifier)
+                        .setTheme(AppColorTheme.gold),
+                    fill: const Color(0xFFF5EBCF),
+                    textColor: const Color(0xFF8A6D1D),
+                    selectedFill: const Color(0xFFD4AF37),
+                    selectedTextColor: const Color(0xFF1A1602),
+                  ),
+                if (!isDark)
+                  _ThemePill(
+                    title: 'Red',
+                    selected: colorTheme == AppColorTheme.red,
+                    onTap: () => ref
+                        .read(colorThemeProvider.notifier)
+                        .setTheme(AppColorTheme.red),
+                    fill: const Color(0xFFFCE8E8),
+                    textColor: const Color(0xFFB71C1C),
+                    selectedFill: const Color(0xFFC62828),
+                    selectedTextColor: Colors.white,
+                  ),
               ],
             ),
 
             const SizedBox(height: 20),
-          ],
 
           // Font scale
           Padding(

@@ -32,10 +32,10 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
         .read(userPreferencesProvider.notifier)
         .updatePreferences(updatedPreferences);
 
-    // Rebuild MaterialApp theme.
+    // Rebuild MaterialApp theme, and reload the color theme from the
+    // bucket for the new mode (light and dark remember separately).
     ref.invalidateSelf();
-    // Gold is dark-mode-only: re-sync the launcher icon for the new mode.
-    ref.read(colorThemeProvider.notifier).syncLauncherIcon();
+    ref.invalidate(colorThemeProvider);
   }
 
   Future<void> toggleAmoled() async {
