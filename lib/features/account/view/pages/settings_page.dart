@@ -141,6 +141,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     selectedFill: const Color(0xFF4EA77D),
                     selectedTextColor: const Color(0xFF06130C),
                   ),
+                if (isDark)
+                  _ThemePill(
+                    title: 'Red',
+                    selected: colorTheme == AppColorTheme.red,
+                    onTap: () => ref
+                        .read(colorThemeProvider.notifier)
+                        .setTheme(AppColorTheme.red),
+                    fill: const Color(0xFF2A1212),
+                    textColor: const Color(0xFFF0A8A8),
+                    selectedFill: const Color(0xFFE05252),
+                    selectedTextColor: const Color(0xFF1A0A0A),
+                  ),
                 if (!isDark)
                   _ThemePill(
                     title: 'Pink',

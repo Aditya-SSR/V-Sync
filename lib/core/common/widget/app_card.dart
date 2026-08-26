@@ -28,8 +28,9 @@ class AppCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final emerald = EmeraldPalette.isActive(theme);
     final gold = GoldPalette.isActive(theme);
+    final red = RedPalette.isActive(theme);
 
-    if (!emerald && !gold) {
+    if (!emerald && !gold && !red) {
       return Container(
         margin: margin,
         padding: padding,
@@ -54,6 +55,11 @@ class AppCard extends StatelessWidget {
       edgeMid = EmeraldPalette.edgeMid;
       edgeDark = EmeraldPalette.edgeDark;
       cardColor = EmeraldPalette.card;
+    } else if (red) {
+      edgeBright = RedPalette.edgeBright;
+      edgeMid = RedPalette.edgeMid;
+      edgeDark = RedPalette.edgeDark;
+      cardColor = RedPalette.card;
     } else {
       edgeBright = GoldPalette.edgeBright;
       edgeMid = GoldPalette.edgeMid;

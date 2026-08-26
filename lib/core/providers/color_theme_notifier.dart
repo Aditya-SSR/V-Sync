@@ -42,9 +42,11 @@ class ColorThemeNotifier extends Notifier<String> {
         final dark = ref.read(userPreferencesProvider).isDarkModeEnabled;
         return dark ? state : AppColorTheme.mono;
       case AppColorTheme.pink:
-      case AppColorTheme.red:
         final dark = ref.read(userPreferencesProvider).isDarkModeEnabled;
         return dark ? AppColorTheme.mono : state;
+      case AppColorTheme.red:
+        // Red exists in both modes (dark red + light red).
+        return state;
       default:
         return AppColorTheme.mono;
     }

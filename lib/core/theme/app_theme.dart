@@ -14,8 +14,7 @@ class AppColorTheme {
 }
 
 /// Palette constants for the emerald theme's specular card edges.
-class EmeraldPalette {
-  static const surface = Color(0xFF080D0B);
+class EmeraldPalette {  static const surface = Color(0xFF080D0B);
   static const card = Color(0xFF0E1512);
   static const edgeBright = Color(0xFF4EA77D);
   static const edgeMid = Color(0xFF2E5A44);
@@ -37,6 +36,21 @@ class GoldPalette {
   static const edgeDark = Color(0xFF2E2712);
   static const primaryText = Color(0xFFE6C15A);
   static const mutedText = Color(0xFFA89F8C);
+
+  static bool isActive(ThemeData theme) =>
+      theme.brightness == Brightness.dark &&
+      theme.colorScheme.surface == surface;
+}
+
+/// Palette constants for the dark red theme's specular card edges.
+class RedPalette {
+  static const surface = Color(0xFF0D0808);
+  static const card = Color(0xFF150E0E);
+  static const edgeBright = Color(0xFFE05252);
+  static const edgeMid = Color(0xFF8A3A3A);
+  static const edgeDark = Color(0xFF2A1212);
+  static const primaryText = Color(0xFFF0A8A8);
+  static const mutedText = Color(0xFFA08C8C);
 
   static bool isActive(ThemeData theme) =>
       theme.brightness == Brightness.dark &&
@@ -68,8 +82,10 @@ ThemeData getThemeData({
   // hairlines and edges (white + gold / pink / red).
   final isGoldLight = colorTheme == AppColorTheme.gold && !isDarkMode;
   final isPink = colorTheme == AppColorTheme.pink && !isDarkMode;
-  final isRed = colorTheme == AppColorTheme.red && !isDarkMode;
-  final isLightAccent = isGoldLight || isPink || isRed;
+  // Red exists in BOTH modes: white + red in light, deep dark red in dark.
+  final isRed = colorTheme == AppColorTheme.red;
+  final isRedDark = isRed && isDarkMode;
+  final isLightAccent = isGoldLight || isPink || (isRed && !isDarkMode);
 
   final outlineColor = isGold
       ? (isDarkMode ? const Color(0xFF9C8434) : const Color(0xFFB08D26))
@@ -108,23 +124,23 @@ ThemeData getThemeData({
         ? const Color(0xFF1A1A1A)
         : const Color(0xFFF2F2F2),
     onErrorContainer: isDarkMode ? white : black,
-    surface: shouldApplyAmoled ? black : (isDarkMode ? black : white),
+    surface: shouldApplyAmoled ? black : (isDarkMode ? black : const Color(0xFFF5F5F7)),
     onSurface: isDarkMode ? white : black,
     surfaceContainerHighest: isDarkMode
         ? const Color(0xFF242424)
-        : const Color(0xFFEDEDED),
+        : const Color(0xFFE8E8ED),
     surfaceContainerHigh: isDarkMode
         ? const Color(0xFF1E1E1E)
-        : const Color(0xFFF2F2F2),
+        : const Color(0xFFFFFFFF),
     surfaceContainer: isDarkMode
         ? const Color(0xFF181818)
-        : const Color(0xFFF7F7F7),
+        : const Color(0xFFFAFAFC),
     surfaceContainerLow: isDarkMode
         ? const Color(0xFF141414)
-        : const Color(0xFFFAFAFA),
+        : const Color(0xFFFFFFFF),
     surfaceContainerLowest: isDarkMode
         ? const Color(0xFF0F0F0F)
-        : const Color(0xFFFFFFFF),
+        : const Color(0xFFFBFBFD),
     onSurfaceVariant: isDarkMode
         ? const Color(0xFFB3B3B3)
         : const Color(0xFF4D4D4D),
@@ -185,6 +201,36 @@ ThemeData getThemeData({
     );
   }
 
+  // Dark red overrides: deep crimson-black surfaces with muted red
+  // headings, same card-edge treatment as emerald/gold.
+  if (isRedDark) {
+    effectiveScheme = colorScheme.copyWith(
+      primary: RedPalette.edgeBright,
+      onPrimary: const Color(0xFF1A0A0A),
+      primaryContainer: const Color(0xFF2A1212),
+      onPrimaryContainer: RedPalette.primaryText,
+      secondary: RedPalette.edgeBright,
+      onSecondary: const Color(0xFF1A0A0A),
+      secondaryContainer: const Color(0xFF1A0E0E),
+      onSecondaryContainer: RedPalette.primaryText,
+      tertiary: const Color(0xFFF0A8A8),
+      tertiaryContainer: RedPalette.edgeDark,
+      surface: shouldApplyAmoled ? black : RedPalette.surface,
+      onSurface: white,
+      surfaceContainerHighest: const Color(0xFF1E1010),
+      surfaceContainerHigh: const Color(0xFF170C0C),
+      surfaceContainer: const Color(0xFF130A0A),
+      surfaceContainerLow: RedPalette.card,
+      surfaceContainerLowest: const Color(0xFF0A0505),
+      onSurfaceVariant: RedPalette.mutedText,
+      outline: const Color(0xFF5A3A3A),
+      outlineVariant: const Color(0xFF2A1B1B),
+      inverseSurface: const Color(0xFFF0D0D0),
+      onInverseSurface: const Color(0xFF1A0A0A),
+      inversePrimary: const Color(0xFF8A3A3A),
+    );
+  }
+
   // Light accent overrides: white surfaces with accent headings,
   // accent hairlines/borders and accent course codes.
   if (isGoldLight) {
@@ -199,7 +245,7 @@ ThemeData getThemeData({
       outline: const Color(0xFFD14D72),
       outlineVariant: const Color(0xFFF2B8C6),
     );
-  } else if (isRed) {
+  } else if (isRed && !isDarkMode) {
     effectiveScheme = colorScheme.copyWith(
       tertiary: const Color(0xFFC62828),
       outline: const Color(0xFFC62828),
@@ -213,17 +259,21 @@ ThemeData getThemeData({
       ? EmeraldPalette.primaryText
       : (isGold && isDarkMode
           ? GoldPalette.primaryText
-          : (isGoldLight
-              ? const Color(0xFFB08D26)
-              : (isPink
-                  ? const Color(0xFFC2185B)
-                  : (isRed ? const Color(0xFFB71C1C) : null))));
+          : (isRedDark
+              ? RedPalette.primaryText
+              : (isGoldLight
+                  ? const Color(0xFFB08D26)
+                  : (isPink
+                      ? const Color(0xFFC2185B)
+                      : (isRed ? const Color(0xFFB71C1C) : null)))));
   final textOnSurface = isDarkMode ? white : black;
   final textOnSurfaceVariant = isSapphire
       ? EmeraldPalette.mutedText
-      : (isDarkMode
-          ? const Color(0xFFB3B3B3)
-          : const Color(0xFF4D4D4D));
+      : (isRedDark
+          ? RedPalette.mutedText
+          : (isDarkMode
+              ? const Color(0xFFB3B3B3)
+              : const Color(0xFF4D4D4D)));
 
   return ThemeData(
     useMaterial3: true,

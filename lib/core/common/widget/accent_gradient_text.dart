@@ -19,6 +19,9 @@ class AccentGradientText extends StatelessWidget {
     if (dark && GoldPalette.isActive(theme)) {
       return const [Color(0xFFF0D77B), Color(0xFFC9A227)];
     }
+    if (dark && RedPalette.isActive(theme)) {
+      return const [Color(0xFFF0A8A8), Color(0xFFE05252)];
+    }
     // Light accent themes.
     if (cs.tertiary == const Color(0xFFB08D26)) {
       return const [Color(0xFFD4AF37), Color(0xFF8A6D1D)];
