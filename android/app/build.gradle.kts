@@ -14,7 +14,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.udhay.vitapstudentapp"
+    namespace = "com.vsync"
     compileSdk = 36
     ndkVersion = "29.0.13113456"
 
@@ -35,7 +35,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.vitapstudent"
+        applicationId = "com.vsync"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
         compileSdk = 36

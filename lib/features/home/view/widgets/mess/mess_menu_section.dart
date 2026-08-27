@@ -127,7 +127,7 @@ class _MessMenuSectionState extends ConsumerState<MessMenuSection> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Upload the mess menu Excel from your mail',
+                    'Upload your mess menu',
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 13,
@@ -414,7 +414,7 @@ class _MessMenuManageSheet extends ConsumerWidget {
               _SheetAction(
                 icon: Iconsax.document_upload_copy,
                 title: 'Insert Excel file',
-                subtitle: 'Pick the monthly mess menu (.xlsx) from your mail',
+                subtitle: 'Upload your mess menu (.xlsx)',
                 onTap: () => _importFromPicker(context, ref),
               ),
               const SizedBox(height: 10),

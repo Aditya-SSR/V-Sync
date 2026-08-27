@@ -1,4 +1,4 @@
-package com.udhay.vitapstudentapp
+package com.vsync
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
