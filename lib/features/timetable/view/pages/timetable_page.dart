@@ -146,7 +146,7 @@ class _TimetablePageState extends ConsumerState<TimetablePage>
                       decoration: BoxDecoration(
                         gradient: RadialGradient(
                           colors: [
-                            auraColor.withValues(alpha: 0.14),
+                            auraColor.withValues(alpha: 0.30),
                             auraColor.withValues(alpha: 0.0),
                           ],
                         ),

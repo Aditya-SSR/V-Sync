@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vit_ap_student_app/core/models/attendance.dart';
-import 'package:vit_ap_student_app/features/attendance/view/widgets/attendance_bottom_sheet.dart';
+import 'package:vit_ap_student_app/features/attendance/view/pages/attendance_calculator_page.dart';
 import 'package:vit_ap_student_app/features/attendance/view/widgets/attendance_percentage_text.dart';
 
 class AttendanceCourseCard extends StatelessWidget {
@@ -13,14 +13,12 @@ class AttendanceCourseCard extends StatelessWidget {
 
   bool _shouldShowDebarStatus() {
     final debarStatus = attendance.debarStatus.trim();
-    // Show if it contains both "Debarred" and "Permitted" or only "Debarred"
     return debarStatus.contains('Debarred') ||
         debarStatus.contains('Permitted');
   }
 
   bool _isOnlyDebarred() {
     final debarStatus = attendance.debarStatus.trim();
-    // Check if it contains only "Debarred" (not "Permitted")
     return debarStatus.contains('Debarred') &&
         !debarStatus.contains('Permitted');
   }
@@ -75,7 +73,11 @@ class AttendanceCourseCard extends StatelessWidget {
         ],
       ),
       onTap: () {
-        showAttendanceBottomSheet(context, attendance);
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => AttendanceCalculatorPage(attendance: attendance),
+          ),
+        );
       },
     );
   }
