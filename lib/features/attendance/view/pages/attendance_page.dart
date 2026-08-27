@@ -44,7 +44,6 @@ class AttendancePageState extends ConsumerState<AttendancePage>
         lastSynced = lastSyncedString;
       });
     }
-    // Auto-refresh if last sync was more than 24 hours ago
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_shouldRefresh()) {
         refreshAttendanceData(silentRefresh: true);
@@ -63,9 +62,6 @@ class AttendancePageState extends ConsumerState<AttendancePage>
     await ref
         .read(attendanceViewModeProvider.notifier)
         .refreshAttendance(silentRefresh: silentRefresh);
-    // Only stamp "last synced" when the refresh actually succeeded. The view
-    // model swallows failures into its error state (e.g. a cancelled/failed
-    // OTP or network error), so advancing the timer unconditionally would lie.
     final state = ref.read(attendanceViewModeProvider);
     if (state != null && !state.hasError) {
       lastSynced = DateTime.now();
@@ -103,99 +99,92 @@ class AttendancePageState extends ConsumerState<AttendancePage>
         bottom: false,
         child: isLoading
             ? const Loader()
-            : RefreshIndicator(
-                onRefresh: () => refreshAttendanceData(),
-                notificationPredicate: (notification) => notification.depth == 1,
-                child: Column(
-                  children: [
-                    const SizedBox(height: 12),
-                    // Last synced, centered above the switcher.
-                    if (lastSynced != null)
-                      Text(
-                        'Last synced ${timeago.format(lastSynced!)}',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 13,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+            : Column(
+                children: [
+                  const SizedBox(height: 12),
+                  if (lastSynced != null)
+                    Text(
+                      'Last synced ${timeago.format(lastSynced!)}',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 13,
+                        color: colorScheme.onSurfaceVariant,
                       ),
-                    const SizedBox(height: 12),
-                    // Capsule segmented control for Theory / Lab.
-                    AnimatedBuilder(
-                      animation: _tabController,
-                      builder: (context, _) {
-                        // Track the swipe live instead of waiting for the
-                        // page to settle.
-                        final liveIndex =
-                            (_tabController.animation?.value ?? 0).round();
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Container(
-                            padding: const EdgeInsets.all(5),
-                            decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerLow,
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Row(
-                              children: [
-                                for (var i = 0; i < 2; i++)
-                                  Expanded(
-                                    child: GestureDetector(
-                                      behavior: HitTestBehavior.opaque,
-                                      onTap: () =>
-                                          _tabController.animateTo(i),
-                                      child: AnimatedContainer(
-                                        duration:
-                                            const Duration(milliseconds: 200),
-                                        curve: Curves.easeOutCubic,
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 11,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: liveIndex == i
-                                              ? colorScheme.primary
-                                              : Colors.transparent,
-                                          borderRadius:
-                                              BorderRadius.circular(30),
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            i == 0 ? 'Theory' : 'Lab',
-                                            style: TextStyle(
-                                              fontFamily: 'Outfit',
-                                              fontSize: 14.5,
-                                              fontWeight: liveIndex == i
-                                                  ? FontWeight.w600
-                                                  : FontWeight.w500,
-                                              color: liveIndex == i
-                                                  ? colorScheme.onPrimary
-                                                  : colorScheme
-                                                      .onSurfaceVariant,
-                                            ),
+                    ),
+                  const SizedBox(height: 12),
+                  // Capsule segmented control for Theory / Lab.
+                  AnimatedBuilder(
+                    animation: _tabController,
+                    builder: (context, _) {
+                      final liveIndex =
+                          (_tabController.animation?.value ?? 0).round();
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Row(
+                            children: [
+                              for (var i = 0; i < 2; i++)
+                                Expanded(
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () =>
+                                        _tabController.animateTo(i),
+                                    child: AnimatedContainer(
+                                      duration:
+                                          const Duration(milliseconds: 200),
+                                      curve: Curves.easeOutCubic,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 11,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: liveIndex == i
+                                            ? colorScheme.primary
+                                            : Colors.transparent,
+                                        borderRadius:
+                                            BorderRadius.circular(30),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          i == 0 ? 'Theory' : 'Lab',
+                                          style: TextStyle(
+                                            fontFamily: 'Outfit',
+                                            fontSize: 14.5,
+                                            fontWeight: liveIndex == i
+                                                ? FontWeight.w600
+                                                : FontWeight.w500,
+                                            color: liveIndex == i
+                                                ? colorScheme.onPrimary
+                                                : colorScheme
+                                                    .onSurfaceVariant,
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
-                              ],
-                            ),
+                                ),
+                            ],
                           ),
-                        );
-                      },
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildBody(user, 'Theory'),
+                        _buildBody(user, 'Lab'),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildBody(user, 'Theory'),
-                          _buildBody(user, 'Lab'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
       ),
     );
@@ -208,7 +197,6 @@ class AttendancePageState extends ConsumerState<AttendancePage>
 
     final attendances = user.attendance.toList();
 
-    // Filter attendances based on course type
     final filteredAttendances = attendances.where((attendance) {
       return attendance.courseType.contains(courseTypeFilter);
     }).toList();
@@ -221,6 +209,7 @@ class AttendancePageState extends ConsumerState<AttendancePage>
     }
 
     return ListView.builder(
+      padding: const EdgeInsets.only(top: 8),
       itemCount: filteredAttendances.length,
       itemBuilder: (context, index) {
         final attendance = filteredAttendances[index];
